@@ -170,7 +170,7 @@ int GetTouch(void) {
   radius: size of the brush
 
 */
-void cs(int x, int y, int color, int radius) {
+void setFrame(int x, int y, int color, int radius) {
   int j = 0;
   int i = 0;
   int radiusPow = 0;
@@ -360,7 +360,7 @@ int main(void) {
     brush_color = white;
     brush_size = 15;
     if (GetTouch() != -1) {
-      cs(x_detected, y_detected, brush_color, brush_size);
+      setFrame(x_detected, y_detected, brush_color, brush_size);
       LCDinit(LCD_PRINT);
     }
   }
