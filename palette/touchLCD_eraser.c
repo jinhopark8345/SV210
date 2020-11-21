@@ -101,7 +101,7 @@ int GetTouch(void) {
                         ((sizeof(struct input_event)) * EVENT_BUF_NUM));
 
     for (i = 0; i < (read_bytests / sizeof(struct input_event)); i++) {
-        /* printf("event bufts %d\n", event_bufts[i].type); */
+      /* printf("event bufts %d\n", event_bufts[i].type); */
       switch (event_bufts[i].type) {
       case EV_ABS:
         switch (event_bufts[i].code) {
@@ -120,18 +120,18 @@ int GetTouch(void) {
       }
     }
 
-    x_detected = (x/20) - 1;
-    if (x_detected >= LCD_WIDTH){
-        x_detected = LCD_WIDTH - 1;
+    x_detected = (x / 20) - 1;
+    if (x_detected >= LCD_WIDTH) {
+      x_detected = LCD_WIDTH - 1;
     }
 
-    if (x_detected <= 0){
-        x_detected = 0;
+    if (x_detected <= 0) {
+      x_detected = 0;
     }
 
-    y_detected = (LCD_HEIGHT - y/34);
-    if(y_detected <= 0){
-        y_detected = 0;
+    y_detected = (LCD_HEIGHT - y / 34);
+    if (y_detected <= 0) {
+      y_detected = 0;
     }
 
     // remove when pos spark
@@ -139,16 +139,16 @@ int GetTouch(void) {
     /*     x_detected = x_detected_prev; */
     /*     y_detected = y_detected_prev; */
     /* } */
-    if (x_detected < LCD_SPARK || x_detected > LCD_WIDTH - LCD_SPARK){
-        x_detected = x_detected_prev;
+    if (x_detected < LCD_SPARK || x_detected > LCD_WIDTH - LCD_SPARK) {
+      x_detected = x_detected_prev;
     }
 
-    if (y_detected < LCD_SPARK || y_detected > LCD_HEIGHT - LCD_SPARK){
-        y_detected = y_detected_prev;
+    if (y_detected < LCD_SPARK || y_detected > LCD_HEIGHT - LCD_SPARK) {
+      y_detected = y_detected_prev;
     }
 
-
-    /* if (x_detected > LCD_WIDTH - LCD_SPARK || y_detected < LCD_HEIGHT - LCD_SPARK){ */
+    /* if (x_detected > LCD_WIDTH - LCD_SPARK || y_detected < LCD_HEIGHT -
+     * LCD_SPARK){ */
     /*     x_detected = x_detected_prev; */
     /*     y_detected = y_detected_prev; */
     /* } */
@@ -176,63 +176,67 @@ void cs(int x, int y, int color, int radius) {
   int radiusPow = 0;
   int tempPosPow = 0;
   int tempPos = 0;
-  int tempX = 0, tempY=0;
-
+  int tempX = 0, tempY = 0;
   unsigned short brush_color;
-
-  switch (color){
-  case 0: // eraser
-      brush_color = (0b10101);
-      break;
-  case 1: // white
-      brush_color  = (0b1111111111111111);
-      break;
-  case 2: // red
-      brush_color = (0b11111 << 11);
-      break;
-  case 3: // blue
-      brush_color = (0b111111 << 5);
-      break;
-  case 4: // green
-      brush_color = (0b11111);
-      break;
-  default:
-      break;
-  }
   radiusPow = radius * radius;
 
+  switch (color) {
+  case 0: // eraser
+    break;
+  case 1: // white
+    brush_color = (0b1111111111111111);
+    break;
+  case 2: // red
+    brush_color = (0b11111 << 11);
+    break;
+  case 3: // blue
+    brush_color = (0b111111 << 5);
+    break;
+  case 4: // green
+    brush_color = (0b11111);
+    break;
+  default:
+    break;
+  }
+
+  // if it's not an eraser
   // brush has circle shape
   for (j = -radius; j < radius; j++) {
-    for (i = -radius; i < radius ; i++) {
-        tempX = i + x;
-        tempY = j + y;
+    for (i = -radius; i < radius; i++) {
+      tempX = i + x;
+      tempY = j + y;
 
-		// check if current position is inside of the LCD boundary
-        if (tempX < 0)
-            tempX = 0;
-        if (tempX >= LCD_WIDTH)
-            tempX = LCD_WIDTH -1;
-        if(tempY < 0)
-            tempY = 0;
-        if(tempY >= LCD_HEIGHT)
-            tempY = LCD_HEIGHT -1;
+      // check if current position is inside of the LCD boundary
+      if (tempX < 0)
+        tempX = 0;
+      if (tempX >= LCD_WIDTH)
+        tempX = LCD_WIDTH - 1;
+      if (tempY < 0)
+        tempY = 0;
+      if (tempY >= LCD_HEIGHT)
+        tempY = LCD_HEIGHT - 1;
 
-		// check if it's in the circle
-        tempPos = tempX + tempY * LCD_WIDTH ;
-        tempPosPow = (i*i + j*j);
-        if(tempPos >= 0 && tempPosPow <= radiusPow){
-            // printf("temppospow: %d\n",tempPosPow);
-            /* printf("i,j : %d, %d\n",i,j); */
-            /* printf("curpos : %d\n",curPos); */
-            /* printf("tempPos : %d\n",tempPos ); */
-            csframe[tempPos] = brush_color;
+      // check if it's in the circle
+      tempPos = tempX + tempY * LCD_WIDTH;
+      tempPosPow = (i * i + j * j);
+      if (tempPos >= 0 && tempPosPow <= radiusPow) {
+        // printf("temppospow: %d\n",tempPosPow);
+        /* printf("i,j : %d, %d\n",i,j); */
+        /* printf("curpos : %d\n",curPos); */
+        /* printf("tempPos : %d\n",tempPos ); */
 
-			// save previous x,y pos
-			x_detected_prev = x_detected;
-			y_detected_prev = y_detected;
+        if (color != 0) { // other than eraser
+          csframe[tempPos] = brush_color;
+        } else { // eraser
+			// untested
+			csframe[tempPos] = frame[tempPos];
         }
-    }
 
+        // save previous x,y pos
+        x_detected_prev = x_detected;
+        y_detected_prev = y_detected;
+      }
+    }
   }
 }
 void LCDinit(int inp) {
@@ -271,9 +275,9 @@ void LCDinit(int inp) {
     printf("%s: ioctl error - FBIOGET_FSCREENINFO \n", FBDEV_FILE);
     exit(1);
   }
-  screen_width = fbvar.xres;             // 스크린의 픽셀 폭
+  screen_width = fbvar.xres; // 스크린의 픽셀 폭
   /* printf("screen width: %d\n", screen_width); */
-  screen_height = fbvar.yres;            // 스크린의 픽셀 높이
+  screen_height = fbvar.yres; // 스크린의 픽셀 높이
   /* printf("screen height: %d\n", screen_height); */
   bits_per_pixel = fbvar.bits_per_pixel; // 픽셀 당 비트 개수
   line_length = fbfix.line_length;       // 한개 라인 당 바이트 개수
@@ -298,7 +302,7 @@ void LCDinit(int inp) {
       j++;
     }
     for (i = 0; i < 384000; i++) {
-	  csframe[i] = frame[i];
+      csframe[i] = frame[i];
     }
     j = 0;
     for (coor_y = 0; coor_y < rows; coor_y++) {
@@ -349,14 +353,15 @@ int main(void) {
   unsigned short blue = 3;
   unsigned short eraser = 0;
 
+  // default brush color
   unsigned short brush_color = red;
 
   while (1) {
     brush_color = white;
     brush_size = 15;
     if (GetTouch() != -1) {
-        cs(x_detected, y_detected, brush_color, brush_size);
-        LCDinit(LCD_PRINT);
+      cs(x_detected, y_detected, brush_color, brush_size);
+      LCDinit(LCD_PRINT);
     }
   }
   return 0;
