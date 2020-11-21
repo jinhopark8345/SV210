@@ -20,16 +20,16 @@
 #include <unistd.h>
 // touch 관련 변수 정의
 #define EVENT_BUF_NUM 2
-#define Y_WIDTH 1275
-#define X_WIDTH 797.5
-#define X_OFFSET 4920 - X_WIDTH / 2
-#define Y_OFFSET 13150 + Y_WIDTH / 2
+
+#define LCD_WIDTH 800
+#define LCD_HEIGHT 480
+#define LCD_SPARK 3
+
 int x_detected, y_detected; // touch 받아서 detecting한 좌표 저장하는 변수
+int x_detected_prev, y_detected_prev;
+int brush_size = 10;
 #define FBDEV_FILE "/dev/fb0"
-#define TURN 1
-#define STONE_CURSOR 4
-#define BOARD_WIDTH 9
-#define BOARD_HEIGHT 9
+
 // LCD 관련 정의
 #define LCD_FINIT 0
 #define LCD_SINIT 1
@@ -37,15 +37,8 @@ int x_detected, y_detected; // touch 받아서 detecting한 좌표 저장하는 
 // LCD 화면 프레임 저장 배열
 unsigned short frame[384000];
 unsigned short csframe[384000];
-unsigned short backframe[384000];
-// 바둑판 각 좌표별 상태 저장 이중 배열
-unsigned int board_status[BOARD_HEIGHT][BOARD_WIDTH] = {{0}};
+/* unsigned short backframe[384000]; */
 // 커서의 현재 좌표 저장용 배열
-unsigned int cursor[2] = {0, 0};
-unsigned int turn = TURN;
-unsigned int clock_count;
-unsigned int sec_saved;
-unsigned int sec_present;
 struct timeval val;
 struct tm *ptm;
 // 터치 받을 때 시간 넘어가면 통과할 때 사용
@@ -86,11 +79,11 @@ void m_delay(int num) {
       ;
 }
 int GetTouch(void) {
-  unsigned int buzzer_sound;
   int i;
   size_t read_bytests;
   struct input_event event_bufts[EVENT_BUF_NUM];
   int x, y;
+  int index = 0;
   if ((event_fd = open("/dev/input/event2", O_RDONLY)) < 0) {
     printf("open error");
     exit(1);
@@ -106,7 +99,9 @@ int GetTouch(void) {
   if (poll_events.revents == POLLIN) {
     read_bytests = read(event_fd, event_bufts,
                         ((sizeof(struct input_event)) * EVENT_BUF_NUM));
+
     for (i = 0; i < (read_bytests / sizeof(struct input_event)); i++) {
+        /* printf("event bufts %d\n", event_bufts[i].type); */
       switch (event_bufts[i].type) {
       case EV_ABS:
         switch (event_bufts[i].code) {
@@ -124,55 +119,42 @@ int GetTouch(void) {
         break;
       }
     }
-    if (x < X_OFFSET)
-      x_detected = -1;
-    else if (x < X_OFFSET + X_WIDTH)
-      x_detected = 0;
-    else if (x < X_OFFSET + 2 * X_WIDTH)
-      x_detected = 1;
-    else if (x < X_OFFSET + 3 * X_WIDTH)
-      x_detected = 2;
-    else if (x < X_OFFSET + 4 * X_WIDTH)
-      x_detected = 3;
-    else if (x < X_OFFSET + 5 * X_WIDTH)
-      x_detected = 4;
-    else if (x < X_OFFSET + 6 * X_WIDTH)
-      x_detected = 5;
-    else if (x < X_OFFSET + 7 * X_WIDTH)
-      x_detected = 6;
-    else if (x < X_OFFSET + 8 * X_WIDTH)
-      x_detected = 7;
-    else if (x < X_OFFSET + 9 * X_WIDTH)
-      x_detected = 8;
-    else
-      x_detected = -1;
-    if (y > Y_OFFSET)
-      y_detected = -1;
-    else if (y > Y_OFFSET - Y_WIDTH)
-      y_detected = 0;
-    else if (y > Y_OFFSET - 2 * Y_WIDTH)
-      y_detected = 1;
-    else if (y > Y_OFFSET - 3 * Y_WIDTH)
-      y_detected = 2;
-    else if (y > Y_OFFSET - 4 * Y_WIDTH)
-      y_detected = 3;
-    else if (y > Y_OFFSET - 5 * Y_WIDTH)
-      y_detected = 4;
-    else if (y > Y_OFFSET - 6 * Y_WIDTH)
-      y_detected = 5;
-    else if (y > Y_OFFSET - 7 * Y_WIDTH)
-      y_detected = 6;
-    else if (y > Y_OFFSET - 8 * Y_WIDTH)
-      y_detected = 7;
-    else if (y > Y_OFFSET - 9 * Y_WIDTH)
-      y_detected = 8;
-    else
-      x_detected = -1;
-    buzzer_sound = 0xff;
-    write(buz_fd, &buzzer_sound, 2);
-    m_delay(300);
-    buzzer_sound = 0x00;
-    write(buz_fd, &buzzer_sound, 2);
+
+    x_detected = (x/20) - 1;
+    if (x_detected >= LCD_WIDTH){
+        x_detected = LCD_WIDTH - 1;
+    }
+
+    if (x_detected <= 0){
+        x_detected = 0;
+    }
+
+    y_detected = (LCD_HEIGHT - y/34);
+    if(y_detected <= 0){
+        y_detected = 0;
+    }
+
+    // remove when pos spark
+    /* if (x_detected < LCD_SPARK || y_detected < LCD_SPARK){ */
+    /*     x_detected = x_detected_prev; */
+    /*     y_detected = y_detected_prev; */
+    /* } */
+    if (x_detected < LCD_SPARK || x_detected > LCD_WIDTH - LCD_SPARK){
+        x_detected = x_detected_prev;
+    }
+
+    if (y_detected < LCD_SPARK || y_detected > LCD_HEIGHT - LCD_SPARK){
+        y_detected = y_detected_prev;
+    }
+
+
+    /* if (x_detected > LCD_WIDTH - LCD_SPARK || y_detected < LCD_HEIGHT - LCD_SPARK){ */
+    /*     x_detected = x_detected_prev; */
+    /*     y_detected = y_detected_prev; */
+    /* } */
+
+    /* printf("x, y: %d,%d\n", x_detected, y_detected); */
+
     close(event_fd);
   } else {
     close(event_fd);
@@ -180,52 +162,78 @@ int GetTouch(void) {
   }
   return 0;
 }
-void cs(int x, int y) {
-  FILE *bmpfdb;
-  char *lpImgb;
-  char r, g, b;
-  unsigned short temp_frame[1600];
+
+/*
+  draw circle on the image
+  position: (x,y)
+  color: color of the brush
+  radius: size of the brush
+
+*/
+void cs(int x, int y, int color, int radius) {
   int j = 0;
   int i = 0;
-  int xpos = 0;
-  int ypos = 0;
-  int mov = 0;
-  int k = 0;
-  switch (turn) {
-  case TURN:
-    bmpfdb = fopen("size.bmp", "rb"); //파일을 읽기 모드로 엶
-    if (bmpfdb == NULL) {
-      printf("파일 소환 실패\n");
-      exit(1);
-    }
-    break;
+  int radiusPow = 0;
+  int tempPosPow = 0;
+  int tempPos = 0;
+  int tempX = 0, tempY=0;
+
+  unsigned short brush_color;
+
+  switch (color){
+  case 0: // eraser
+      brush_color = (0b10101);
+      break;
+  case 1: // white
+      brush_color  = (0b1111111111111111);
+      break;
+  case 2: // red
+      brush_color = (0b11111 << 11);
+      break;
+  case 3: // blue
+      brush_color = (0b111111 << 5);
+      break;
+  case 4: // green
+      brush_color = (0b11111);
+      break;
   default:
-    break;
+      break;
   }
-  fseek(bmpfdb, 54, SEEK_SET);
-  lpImgb = (char *)malloc(3072);
-  fread(lpImgb, sizeof(char), 3072, bmpfdb);
-  for (i = 0; i < 1024; i++) {
-    b = *lpImgb++;
-    g = *lpImgb++;
-    r = *lpImgb++;
-    temp_frame[j] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
-    j++;
-  }
-  xpos = x * 40.625 + 220;
-  ypos = y * 40.75 + 60;
-  mov = xpos + ypos * 800;
-  for (i = 0; i < 384000; i++) {
-    csframe[i] = frame[i];
-  }
-  for (j = 0; j < 32; j++) {
-    for (i = 0; i < 32; i++) {
-      csframe[mov + i] = temp_frame[k];
-      k++;
+  radiusPow = radius * radius;
+
+  // brush has circle shape
+  for (j = -radius; j < radius; j++) {
+    for (i = -radius; i < radius ; i++) {
+        tempX = i + x;
+        tempY = j + y;
+
+		// check if current position is inside of the LCD boundary
+        if (tempX < 0)
+            tempX = 0;
+        if (tempX >= LCD_WIDTH)
+            tempX = LCD_WIDTH -1;
+        if(tempY < 0)
+            tempY = 0;
+        if(tempY >= LCD_HEIGHT)
+            tempY = LCD_HEIGHT -1;
+
+		// check if it's in the circle
+        tempPos = tempX + tempY * LCD_WIDTH ;
+        tempPosPow = (i*i + j*j);
+        if(tempPos >= 0 && tempPosPow <= radiusPow){
+            // printf("temppospow: %d\n",tempPosPow);
+            /* printf("i,j : %d, %d\n",i,j); */
+            /* printf("curpos : %d\n",curPos); */
+            /* printf("tempPos : %d\n",tempPos ); */
+            csframe[tempPos] = brush_color;
+
+			// save previous x,y pos
+			x_detected_prev = x_detected;
+			y_detected_prev = y_detected;
+        }
     }
-    mov = mov + 800;
+
   }
-  fclose(bmpfdb);
 }
 void LCDinit(int inp) {
   int screen_width;
@@ -245,7 +253,8 @@ void LCDinit(int inp) {
   char *lpImg, *tempImg;
   char r, g, b;
   int j = 0;
-  int cols = 800, rows = 480;
+  int cols = LCD_WIDTH, rows = LCD_HEIGHT;
+  int disable_height = brush_size * 2;
   if (access(FBDEV_FILE, F_OK)) {
     printf("%s: access error\n", FBDEV_FILE);
     exit(1);
@@ -263,7 +272,9 @@ void LCDinit(int inp) {
     exit(1);
   }
   screen_width = fbvar.xres;             // 스크린의 픽셀 폭
+  /* printf("screen width: %d\n", screen_width); */
   screen_height = fbvar.yres;            // 스크린의 픽셀 높이
+  /* printf("screen height: %d\n", screen_height); */
   bits_per_pixel = fbvar.bits_per_pixel; // 픽셀 당 비트 개수
   line_length = fbfix.line_length;       // 한개 라인 당 바이트 개수
   mem_size = screen_width * screen_height * 2;
@@ -287,7 +298,7 @@ void LCDinit(int inp) {
       j++;
     }
     for (i = 0; i < 384000; i++) {
-      backframe[i] = frame[i];
+	  csframe[i] = frame[i];
     }
     j = 0;
     for (coor_y = 0; coor_y < rows; coor_y++) {
@@ -297,21 +308,11 @@ void LCDinit(int inp) {
     }
     fclose(bmpfd);
   }
-  if (inp == 1) {
-    for (i = 0; i < 384000; i++) {
-      frame[i] = backframe[i];
-      csframe[i] = backframe[i];
-    }
-    for (coor_y = 0; coor_y < rows; coor_y++) {
-      ptr = (unsigned short *)fb_mapped + (screen_width * coor_y);
-      for (coor_x = 0; coor_x < cols; coor_x++)
-        *ptr++ = csframe[coor_x + coor_y * cols];
-    }
-  }
   if (inp == 2) {
-    for (coor_y = 0; coor_y < rows; coor_y++) {
+    for (coor_y = 0; coor_y < rows - disable_height; coor_y++) {
       ptr = (unsigned short *)fb_mapped + (screen_width * coor_y);
       for (coor_x = 0; coor_x < cols; coor_x++)
+
         *ptr++ = csframe[coor_x + coor_y * cols];
     }
   }
@@ -332,62 +333,31 @@ void init_devices() {
   strcommand.pos = 10;
   strcommand.command = 1;
   strcommand.strlength = 16;
-  if ((buz_fd = open("/dev/buzzer", O_WRONLY)) < 0) {
-    printf("application : buzzer driver open fail!\n");
-    exit(1);
-  }
-}
-void cursorProgram() {
-  char key;
-  unsigned int status_backup = 10;
-  int time_over = 0;
-  int put_stone = 0;
-  unsigned int cursor_check[2];
-  cursor[0] = 4;
-  cursor[1] = 4;
-  ioctl(seg_fd, 0, NULL, NULL);
-  status_backup = board_status[cursor[0]][cursor[1]];
-  board_status[cursor[0]][cursor[1]] = STONE_CURSOR;
-  gettimeofday(&val, NULL);
-  ptm = localtime(&val.tv_sec);
-  sec_saved = ptm->tm_hour * 60 * 24 + ptm->tm_min * 60 + ptm->tm_sec;
-  while (1) {
-    cs(cursor[1], cursor[0]);
-    LCDinit(LCD_PRINT);
-    if (status_backup != 10)
-      board_status[cursor[0]][cursor[1]] = status_backup;
-    while (1) {
-      if (GetTouch() != -1) {
-        if (x_detected != -1 && y_detected != -1) {
-          cursor[0] = y_detected;
-          cursor[1] = x_detected;
-          cs(cursor[1], cursor[0]);
-          LCDinit(LCD_PRINT);
-        }
-      }
-    }
-    status_backup = board_status[cursor[0]][cursor[1]];
-    board_status[cursor[0]][cursor[1]] = STONE_CURSOR;
-    cs(cursor[1], cursor[0]);
-  }
-  return;
 }
 int main(void) {
-  int i = 0, j = 0;
-  unsigned int led_cnt;
-  unsigned int seg_count;
-  printf("***TOUCH & BUZZER***\n");
   init_devices();
   LCDinit(LCD_FINIT);
+
+  /* unsigned short white = (0b1111111111111111); */
+  /* unsigned short red = (0b11111 << 11); */
+  /* unsigned short blue = (0b111111 << 5); */
+  /* unsigned short green = (0b11111); */
+  /* unsigned short eraser = (0b11111); */
+  /* unsigned short brush_color = 0; */
+  unsigned short white = 1;
+  unsigned short red = 2;
+  unsigned short blue = 3;
+  unsigned short eraser = 0;
+
+  unsigned short brush_color = red;
+
   while (1) {
-    for (i = 0; i < BOARD_HEIGHT; i++)
-      for (j = 0; j < BOARD_WIDTH; j++)
-        board_status[i][j] = 0;
-    while (1) {
-      cursorProgram();
-      LCDinit(LCD_PRINT);
+    brush_color = white;
+    brush_size = 15;
+    if (GetTouch() != -1) {
+        cs(x_detected, y_detected, brush_color, brush_size);
+        LCDinit(LCD_PRINT);
     }
-    LCDinit(LCD_SINIT);
   }
   return 0;
 }
