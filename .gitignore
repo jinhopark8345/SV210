@@ -135,3 +135,7 @@ plan.org
 
 # projectile
 .projectile
+
+
+# .o files
+*.o

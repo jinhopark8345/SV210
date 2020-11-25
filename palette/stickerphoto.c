@@ -18,10 +18,6 @@
 
 
 
-
-
-
-
 unsigned short get_color(unsigned short brush_color){
     printf("%c pressed\n", brush_color);
     switch (brush_color) {
@@ -72,10 +68,12 @@ int main(void) {
   // default brush color
   unsigned short brush_color = green;
   char* file_name = "face_image.jpg";
+  char* background_image = "background.bmp";
   unsigned char *fb_mapped;
 
-  fb_mapped = LCDinit("background.bmp");
-
+  // prepare touchlcd
+  init_palette(background_image);
+  fb_mapped = lcdvar.fb_mapped;
 
   while (keyboard_input != 'q') {
     if(kbhit()){
@@ -116,7 +114,6 @@ int main(void) {
 
     if (GetTouch() != -1) {
       setFrame(x_detected, y_detected, brush_color, brush_size);
-      /* LCDinit(LCD_PRINT, file_name); */
       LCD_print(fb_mapped);
     }
   }
@@ -124,5 +121,7 @@ int main(void) {
   /* munmap(fb_mapped, mem_size); */
   /* close(fb_fd); */
   close_keyboard();
+  close_LCD();
+
   return 0;
 }

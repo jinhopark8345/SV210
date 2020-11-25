@@ -31,6 +31,13 @@ int x_detected_prev, y_detected_prev;
 #define LCD_PRINT 2
 
 
+/* struct lcd_variable lcdvar; */
+struct lcd_variable{
+  unsigned char *fb_mapped;
+  int mem_size;
+  int fb_fd;
+};
+struct lcd_variable lcdvar;
 
 
 void init_touchlcd();
@@ -41,8 +48,11 @@ int GetTouch(void);
 
 void LCD_print(unsigned char *fb_mapped);
 
-unsigned char * LCDinit(char* background);
-
+// unsigned char LCDinit(char* background);
+// struct lcd_variable LCDinit(char* background);
+struct lcd_variable init_palette(char* background);
 void setFrame(int x, int y, unsigned short brush_color, int radius);
+
+void close_LCD();
 
 #endif

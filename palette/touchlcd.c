@@ -16,13 +16,14 @@
 
 #include "touchlcd.h"
 
-brush_size = 10;
 // LCD 화면 프레임 저장 배열
 unsigned short frame[384000];
 unsigned short csframe[384000];
 /* unsigned short backframe[384000]; */
 // 터치 받을 때 시간 넘어가면 통과할 때 사용
 int poll_state;
+
+
 struct pollfd poll_events;
 // TextLCD 에 표시되는 값들에 관한 정보 저장 구조체
 struct strcommand_varible strcommand;
@@ -180,16 +181,17 @@ void LCD_print(unsigned char *fb_mapped){
 }
 
 
-unsigned char * LCDinit(char* background){
+struct lcd_variable init_palette(char* background){
+  brush_size = 10;
   int screen_width;
   int screen_height;
   int bits_per_pixel;
   int line_length;
-  int fb_fd;
+  /* int fb_fd; */
   struct fb_var_screeninfo fbvar;
   struct fb_fix_screeninfo fbfix;
-  unsigned char *fb_mapped;
-  int mem_size;
+  /* unsigned char *fb_mapped; */
+  /* int mem_size; */
   unsigned short *ptr;
   int coor_y, coor_x;
   int i;
@@ -203,15 +205,15 @@ unsigned char * LCDinit(char* background){
     printf("%s: access error\n", FBDEV_FILE);
     exit(1);
   }
-  if ((fb_fd = open(FBDEV_FILE, O_RDWR)) < 0) {
+  if ((lcdvar.fb_fd = open(FBDEV_FILE, O_RDWR)) < 0) {
     printf("%s: open error\n", FBDEV_FILE);
     exit(1);
   }
-  if (ioctl(fb_fd, FBIOGET_VSCREENINFO, &fbvar)) {
+  if (ioctl(lcdvar.fb_fd, FBIOGET_VSCREENINFO, &fbvar)) {
     printf("%s: ioctl error - FBIOGET_VSCREENINFO \n", FBDEV_FILE);
     exit(1);
   }
-  if (ioctl(fb_fd, FBIOGET_FSCREENINFO, &fbfix)) {
+  if (ioctl(lcdvar.fb_fd, FBIOGET_FSCREENINFO, &fbfix)) {
     printf("%s: ioctl error - FBIOGET_FSCREENINFO \n", FBDEV_FILE);
     exit(1);
   }
@@ -219,8 +221,8 @@ unsigned char * LCDinit(char* background){
   screen_height = fbvar.yres; // 스크린의 픽셀 높이
   bits_per_pixel = fbvar.bits_per_pixel; // 픽셀 당 비트 개수
   line_length = fbfix.line_length;       // 한개 라인 당 바이트 개수
-  mem_size = screen_width * screen_height * 2;
-  fb_mapped = (unsigned char *)mmap(0, mem_size, PROT_READ | PROT_WRITE, MAP_SHARED, fb_fd, 0);
+  lcdvar.mem_size = screen_width * screen_height * 2;
+  lcdvar.fb_mapped = (unsigned char *)mmap(0, lcdvar.mem_size, PROT_READ | PROT_WRITE, MAP_SHARED, lcdvar.fb_fd, 0);
 
   bmpfd = fopen(background, "rb"); //파일을 읽기 모드로 엶
   if (bmpfd == NULL) {
@@ -242,7 +244,7 @@ unsigned char * LCDinit(char* background){
   // setting the default frame: make the edit area white
   for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
       ystart = (screen_width * PALETTE_START_Y + PALETTE_START_X) +(screen_width * coor_y);
-      ptr = (unsigned short *)fb_mapped + ystart;
+      ptr = (unsigned short *)lcdvar.fb_mapped + ystart;
       for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++){
           frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR;
       }
@@ -256,15 +258,11 @@ unsigned char * LCDinit(char* background){
 
   // display rgb values in csframe
   for (coor_y = 0; coor_y < rows; coor_y++) {
-    ptr = (unsigned short *)fb_mapped + (screen_width * coor_y);
+    ptr = (unsigned short *)lcdvar.fb_mapped + (screen_width * coor_y);
     for (coor_x = 0; coor_x < cols; coor_x++)
       *ptr++ = csframe[coor_x + coor_y * cols];
   }
-  /* printf("start point value %d\n", csframe[PALETTE_START_X+1 +(PALETTE_START_Y+1) * LCD_WIDTH]); */
 
-  /* fclose(bmpfd); */
-
-  return fb_mapped;
 }
 
 /*
@@ -324,4 +322,10 @@ void setFrame(int x, int y, unsigned short brush_color, int radius) {
       }
     }
   }
+}
+
+void close_LCD(){
+    printf("release current lcdvar struct\n");
+    munmap(lcdvar.fb_mapped,lcdvar.mem_size);
+    close(lcdvar.fb_fd);
 }
