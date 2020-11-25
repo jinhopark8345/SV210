@@ -18,6 +18,14 @@
 #include <unistd.h>
 #include <unistd.h> // open/close
 #include <unistd.h>
+
+#include "keyboard.h"
+// #include "facedetect.h"
+
+#define ushort unsigned short
+#define PALETTE_ERASER 0b1011111111111111
+#define BRUSH_STEP 2
+
 // touch 관련 변수 정의
 #define EVENT_BUF_NUM 2
 
@@ -34,9 +42,9 @@ int brush_size = 10;
 #define LCD_FINIT 0
 #define LCD_PRINT 2
 // LCD 화면 프레임 저장 배열
-unsigned short frame[384000];
-unsigned short csframe[384000];
-/* unsigned short backframe[384000]; */
+ushort frame[384000];
+ushort csframe[384000];
+/* ushort backframe[384000]; */
 // 터치 받을 때 시간 넘어가면 통과할 때 사용
 int poll_state;
 struct pollfd poll_events;
@@ -166,34 +174,15 @@ int GetTouch(void) {
   radius: size of the brush
 
 */
-void setFrame(int x, int y, int color, int radius) {
+void setFrame(int x, int y, ushort brush_color, int radius) {
   int j = 0;
   int i = 0;
   int radiusPow = 0;
   int tempPosPow = 0;
   int tempPos = 0;
   int tempX = 0, tempY = 0;
-  unsigned short brush_color;
+  /* ushort brush_color; */
   radiusPow = radius * radius;
-
-  switch (color) {
-  case 0: // eraser
-    break;
-  case 1: // white
-    brush_color = (0b1111111111111111);
-    break;
-  case 2: // red
-    brush_color = (0b11111 << 11);
-    break;
-  case 3: // blue
-    brush_color = (0b111111 << 5);
-    break;
-  case 4: // green
-    brush_color = (0b11111);
-    break;
-  default:
-    break;
-  }
 
   // if it's not an eraser
   // brush has circle shape
@@ -221,9 +210,10 @@ void setFrame(int x, int y, int color, int radius) {
         /* printf("curpos : %d\n",curPos); */
         /* printf("tempPos : %d\n",tempPos ); */
 
-        if (color != 0) { // other than eraser
+        if (brush_color != PALETTE_ERASER) { // other than eraser
           csframe[tempPos] = brush_color;
-        } else { // eraser
+        } else {
+          // eraser
           // untested
           csframe[tempPos] = frame[tempPos];
         }
@@ -245,7 +235,7 @@ void LCDinit(int inp, char *image_path) {
   struct fb_fix_screeninfo fbfix;
   unsigned char *fb_mapped;
   int mem_size;
-  unsigned short *ptr;
+  ushort *ptr;
   int coor_y;
   int coor_x;
   int i;
@@ -280,7 +270,7 @@ void LCDinit(int inp, char *image_path) {
   mem_size = screen_width * screen_height * 2;
   fb_mapped = (unsigned char *)mmap(0, mem_size, PROT_READ | PROT_WRITE,
                                     MAP_SHARED, fb_fd, 0);
-  if (inp == 0) {
+  if (inp == LCD_FINIT) {
     bmpfd = fopen("size2.bmp", "rb"); //파일을 읽기 모드로 엶
     if (bmpfd == NULL) {
       printf("파일 소환 실패\n");
@@ -301,26 +291,35 @@ void LCDinit(int inp, char *image_path) {
       csframe[i] = frame[i];
     }
     j = 0;
+
     for (coor_y = 0; coor_y < rows; coor_y++) {
-      ptr = (unsigned short *)fb_mapped + (screen_width * coor_y);
+      ptr = (ushort *)fb_mapped + (screen_width * coor_y);
       for (coor_x = 0; coor_x < cols; coor_x++)
         *ptr++ = csframe[coor_x + coor_y * cols];
     }
     fclose(bmpfd);
   }
-  if (inp == 2) {
-    for (coor_y = 0; coor_y < rows - disable_height; coor_y++) {
-      ptr = (unsigned short *)fb_mapped + (screen_width * coor_y);
-      for (coor_x = 0; coor_x < cols; coor_x++)
+  if (inp == LCD_PRINT) {
 
-        *ptr++ = csframe[coor_x + coor_y * cols];
+    for (coor_y = 0; coor_y < 240; coor_y++) {
+        ptr = (ushort *)fb_mapped + (screen_width * 120 + 435) +(screen_width * coor_y);
+      for (coor_x = 0; coor_x < 320; coor_x++)
+        /* *ptr++ = csframe[coor_x + coor_y * 320]; */
+        *ptr++ = csframe[coor_x + (screen_width * 120 + 435) +(screen_width * coor_y)];
     }
+    // original
+    // for (coor_y = 0; coor_y < rows - disable_height; coor_y++) {
+    //   ptr = (ushort *)fb_mapped + (screen_width * coor_y);
+    //   for (coor_x = 0; coor_x < cols; coor_x++)
+
+    //     *ptr++ = csframe[coor_x + coor_y * cols];
+    // }
   }
   munmap(fb_mapped, mem_size);
   close(fb_fd);
 }
 // device driver들 로드
-void init_devices() {
+void init_touchlcd() {
   strcommand.rows = 0;
   strcommand.nfonts = 0;
   strcommand.display_enable = 1;
@@ -334,35 +333,103 @@ void init_devices() {
   strcommand.command = 1;
   strcommand.strlength = 16;
 }
+
+ushort get_color(ushort brush_color){
+    printf("%c pressed\n", brush_color);
+    switch (brush_color) {
+    case 'w': // white
+        brush_color = (0b1111111111111111);
+        printf("brush color: white\n");
+        break;
+    case 'r': // red
+        brush_color = (0b11111 << 11);
+        printf("brush color: red\n");
+        break;
+    case 'b': // blue
+        brush_color = (0b11111);
+        printf("brush color: blue\n");
+        break;
+    case 'g': // green
+        brush_color = (0b111111 << 5);
+        printf("brush color: green\n");
+        break;
+    case 'e': // eraser
+        brush_color = PALETTE_ERASER;
+        printf("brush color: eraser\n");
+        break;
+    default:
+        break;
+    }
+
+    return brush_color;
+}
+
 int main(void) {
-  init_devices();
+  init_touchlcd();
+  init_keyboard();
 
-  /* unsigned short white = (0b1111111111111111); */
-  /* unsigned short red = (0b11111 << 11); */
-  /* unsigned short blue = (0b111111 << 5); */
-  /* unsigned short green = (0b11111); */
-  /* unsigned short eraser = (0b11111); */
-  /* unsigned short brush_color = 0; */
-  unsigned short white = 1;
-  unsigned short red = 2;
-  unsigned short blue = 3;
-  unsigned short eraser = 0;
+  /* ushort white = (0b1111111111111111); */
+  /* ushort red = (0b11111 << 11); */
+  /* ushort blue = (0b111111 << 5); */
+  /* ushort green = (0b11111); */
+  /* ushort eraser = (0b11111); */
+  /* ushort brush_color = 0; */
+  ushort white = 1;
+  ushort red = 2;
+  ushort blue = 3;
+  ushort green = 4;
+  ushort eraser = 0;
 
+  ushort keyboard_input=0;
   // default brush color
-  unsigned short brush_color = red;
+  ushort brush_color = red;
   char* file_name = "face_image.jpg";
 
   LCDinit(LCD_FINIT, file_name);
 
-  while (1) {
-    brush_color = white;
-    brush_size = 15;
-	file_name = "face_image.jpg";
+  while (keyboard_input != 'q') {
+    if(kbhit()){
+        keyboard_input = readch();
+
+        switch(keyboard_input) {
+            case 'w':
+                brush_color = get_color(keyboard_input);
+                break;
+            case 'r':
+                brush_color = get_color(keyboard_input);
+                break;
+            case 'b':
+                brush_color = get_color(keyboard_input);
+                break;
+            case 'g':
+                brush_color = get_color(keyboard_input);
+                break;
+            case 'e':
+                brush_color = get_color(keyboard_input);
+                break;
+            case '+':
+                printf("+ pressed \n");
+                brush_size += BRUSH_STEP;
+                printf("increase brush size, brush size: %d\n",brush_size);
+                break;
+            case '-':
+                printf("- pressed \n");
+                brush_size -= BRUSH_STEP;
+                printf("reduce brush size, brush size: %d\n",brush_size);
+                break;
+            default:
+                printf("undefined key pressed \n");
+                break;
+        }
+    }
+
 
     if (GetTouch() != -1) {
       setFrame(x_detected, y_detected, brush_color, brush_size);
       LCDinit(LCD_PRINT, file_name);
     }
   }
+
+  close_keyboard();
   return 0;
 }
