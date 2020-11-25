@@ -67,12 +67,12 @@ int main(void) {
   unsigned short keyboard_input=0;
   // default brush color
   unsigned short brush_color = green;
-  char* file_name = "face_image.jpg";
+  char* face_file = "face_image.jpg";
   char* background_image = "background.bmp";
   unsigned char *fb_mapped;
 
   // prepare touchlcd
-  init_palette(background_image);
+  init_palette(background_image, face_file);
   fb_mapped = lcdvar.fb_mapped;
 
   while (keyboard_input != 'q') {

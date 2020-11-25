@@ -50,7 +50,7 @@ void LCD_print(unsigned char *fb_mapped);
 
 // unsigned char LCDinit(char* background);
 // struct lcd_variable LCDinit(char* background);
-struct lcd_variable init_palette(char* background);
+struct lcd_variable init_palette(char* background, char* face_file);
 void setFrame(int x, int y, unsigned short brush_color, int radius);
 
 void close_LCD();

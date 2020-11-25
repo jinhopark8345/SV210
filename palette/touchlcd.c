@@ -176,12 +176,13 @@ void LCD_print(unsigned char *fb_mapped){
       for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++)
         *ptr++ = csframe[coor_x + ystart];
     }
+
     /* printf("start point value %d\n", csframe[PALETTE_START_X+1 +(PALETTE_START_Y+1) * LCD_WIDTH]); */
 
 }
 
 
-struct lcd_variable init_palette(char* background){
+struct lcd_variable init_palette(char* background, char* face_file){
   brush_size = 10;
   int screen_width;
   int screen_height;
@@ -196,11 +197,14 @@ struct lcd_variable init_palette(char* background){
   int coor_y, coor_x;
   int i;
   FILE *bmpfd;
+  FILE *bmpfd_face;
+
   char *lpImg, *tempImg;
   char r, g, b;
   int j = 0;
   int cols = LCD_WIDTH, rows = LCD_HEIGHT;
   int ystart = 0;
+
   if (access(FBDEV_FILE, F_OK)) {
     printf("%s: access error\n", FBDEV_FILE);
     exit(1);
