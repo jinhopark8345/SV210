@@ -24,6 +24,8 @@
 
 #define ushort unsigned short
 #define PALETTE_ERASER 0b1011111111111111
+#define DEFAULT_PALETTE_COLOR 0b0000000000000000
+/* #define DEFAULT_PALETTE_COLOR 0b1111111111111111 */
 #define BRUSH_STEP 2
 
 // touch 관련 변수 정의
@@ -31,6 +33,10 @@
 
 #define LCD_WIDTH 800
 #define LCD_HEIGHT 480
+#define PALETTE_WIDTH 400
+#define PALETTE_HEIGHT 320
+#define PALETTE_START_X 395
+#define PALETTE_START_Y 80
 #define LCD_SPARK 3
 
 int x_detected, y_detected; // touch 받아서 detecting한 좌표 저장하는 변수
@@ -245,6 +251,7 @@ void LCDinit(int inp, char *image_path) {
   int j = 0;
   int cols = LCD_WIDTH, rows = LCD_HEIGHT;
   int disable_height = brush_size * 2;
+  int ystart = 0;
   if (access(FBDEV_FILE, F_OK)) {
     printf("%s: access error\n", FBDEV_FILE);
     exit(1);
@@ -271,7 +278,7 @@ void LCDinit(int inp, char *image_path) {
   fb_mapped = (unsigned char *)mmap(0, mem_size, PROT_READ | PROT_WRITE,
                                     MAP_SHARED, fb_fd, 0);
   if (inp == LCD_FINIT) {
-    bmpfd = fopen("size2.bmp", "rb"); //파일을 읽기 모드로 엶
+    bmpfd = fopen("size.bmp", "rb"); //파일을 읽기 모드로 엶
     if (bmpfd == NULL) {
       printf("파일 소환 실패\n");
       exit(1);
@@ -292,21 +299,58 @@ void LCDinit(int inp, char *image_path) {
     }
     j = 0;
 
+    // make whole touchlcd same as the input image file
     for (coor_y = 0; coor_y < rows; coor_y++) {
       ptr = (ushort *)fb_mapped + (screen_width * coor_y);
       for (coor_x = 0; coor_x < cols; coor_x++)
-        *ptr++ = csframe[coor_x + coor_y * cols];
+        *ptr++ = frame[coor_x + coor_y * cols];
     }
-    fclose(bmpfd);
-  }
-  if (inp == LCD_PRINT) {
 
-    for (coor_y = 0; coor_y < 240; coor_y++) {
-        ptr = (ushort *)fb_mapped + (screen_width * 120 + 435) +(screen_width * coor_y);
-      for (coor_x = 0; coor_x < 320; coor_x++)
-        /* *ptr++ = csframe[coor_x + coor_y * 320]; */
-        *ptr++ = csframe[coor_x + (screen_width * 120 + 435) +(screen_width * coor_y)];
+    // make the edit area white
+    for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
+        ystart = (screen_width * PALETTE_START_Y + PALETTE_START_X) +(screen_width * coor_y);
+        ptr = (ushort *)fb_mapped + ystart;
+      for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++)
+          // make the lcd white and save the color to the csframe
+          frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR;
+          csframe[coor_x + ystart] = DEFAULT_PALETTE_COLOR;
+          /* *ptr++ = DEFAULT_PALETTE_COLOR; */
     }
+
+    for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
+        ystart = (screen_width * PALETTE_START_Y + PALETTE_START_X) +(screen_width * coor_y);
+        ptr = (ushort *)fb_mapped + ystart;
+      for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++)
+          // make the lcd white and save the color to the csframe
+          *ptr++ = DEFAULT_PALETTE_COLOR;
+    }
+    printf("start point value %d\n", csframe[PALETTE_START_X+1 +(PALETTE_START_Y+1) * LCD_WIDTH]);
+
+
+    fclose(bmpfd);
+  } else if (inp == LCD_PRINT) {
+      /*
+      // control the area that user can edit
+      // PALETTE HEIGHT and WIDTH define the size of the palette
+      // PALETTE_START_Y and PALETTE_START_X define the start pos of the palette in the touchlcd
+      */
+    for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
+        ystart = (screen_width * PALETTE_START_Y + PALETTE_START_X) +(screen_width * coor_y);
+        ptr = (ushort *)fb_mapped + ystart;
+      for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++)
+        *ptr++ = csframe[coor_x + ystart];
+    }
+
+    printf("start point value %d\n", csframe[PALETTE_START_X+1 +(PALETTE_START_Y+1) * LCD_WIDTH]);
+
+    // 320x240 works
+    // for (coor_y = 0; coor_y < 240; coor_y++) {
+    //     ptr = (ushort *)fb_mapped + (screen_width * 120 + 435) +(screen_width * coor_y);
+    //   for (coor_x = 0; coor_x < 320; coor_x++)
+    //     /* *ptr++ = csframe[coor_x + coor_y * 320]; */
+    //     *ptr++ = csframe[coor_x + (screen_width * 120 + 435) +(screen_width * coor_y)];
+    // }
+
     // original
     // for (coor_y = 0; coor_y < rows - disable_height; coor_y++) {
     //   ptr = (ushort *)fb_mapped + (screen_width * coor_y);
