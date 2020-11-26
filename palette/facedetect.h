@@ -9,6 +9,7 @@ void Fill_Background(unsigned short color);
 void RGB2cvIMG(IplImage *img, unsigned short *rgb, int ex, int ey);
 int detect_and_draw(IplImage *img);
 int init_facedetect();
+int close_facedetect();
 
 int fb_display(unsigned short *rgb, int sx, int sy);
 

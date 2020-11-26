@@ -19,13 +19,13 @@
 #include "facedetect.h"
 
 #define RGB565(r,g,b)	((((r)>>3)<<11) | (((g)>>2)<<5) | ((b)>>3))
-#define FBDEV_FILE	"/dev/fb0"
 #define CAMERA_DEVICE	"/dev/camera"
 #define FILE_NAME	"face_image.jpg"
 
 static CvMemStorage* storage = 0;
 static CvHaarClassifierCascade* cascade = 0;
 struct fb_var_screeninfo fbvar;
+IplImage *camera_image = NULL;
 unsigned char *pfbmap;
 unsigned short cis_rgb[320*240*2];
 
@@ -52,6 +52,12 @@ int fb_display(unsigned short *rgb, int sx, int sy) {
 
 	screen_width = fbvar.xres;
 
+    // make facedetect alone?
+    // remove all touchlcd control part
+    // I should remove pfbmap from below and connect this with
+    // touchlcd or something or pass the parameter from here? or
+    // remove fb_display function cuz it's not supposed to be in
+    // facedetct
 	for(coor_y = 0; coor_y < 240; coor_y++){
 		ptr = (unsigned short*)pfbmap + (screen_width * sy + sx) + (screen_width * coor_y);
 		for(coor_x = 0; coor_x < 320; coor_x++){
@@ -166,20 +172,9 @@ int init_facedetect(int argc, char** argv){
 	int optlen = strlen("--cascade=");
 	unsigned short ch=0;
 	CvCapture *capture=0;
-	IplImage *image = NULL;
 
 	if((fd=open("/dev/mem", O_RDWR|O_SYNC)) < 0){
 		perror("mem open fail\n");
-		exit(1);
-	}
-
-	if((fbfd = open(FBDEV_FILE, O_RDWR)) < 0){
-		printf("Failed to open: %s\n", FBDEV_FILE);
-		exit(-1);
-	}
-
-	if(ioctl(fbfd, FBIOGET_VSCREENINFO, &fbvar) < 0){
-		perror("fbdev ioctl");
 		exit(1);
 	}
 
@@ -188,12 +183,7 @@ int init_facedetect(int argc, char** argv){
 		exit(1);
 	}
 
-	pfbmap = (unsigned char*)mmap(0, fbvar.xres*fbvar.yres*2, PROT_READ|PROT_WRITE, MAP_SHARED, fbfd, 0);
 
-	if((unsigned)pfbmap < 0){
-		perror("mmap failed...");
-		exit(1);
-	}
 
 	if(argc > 1 && strncmp(argv[1], "--cascade=", optlen) == 0){
 		cascade_xml = argv[1] + optlen;
@@ -216,16 +206,7 @@ int init_facedetect(int argc, char** argv){
 		exit(1);
 	}
 
-	image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
-    // temp_img = cvCloneImage(image);
-    // markers = cvCreateImage( cvGetSize(temp_img), IPL_DEPTH_32S, 1 );
-
-	printf("1.3M CIS Camera FaceDetect Program -ver.20100721\n");
-	printf("Usage : \n");
-	printf("	[d] CIS Camera Display\n");
-	printf("	[f] face detect start\n");
-	printf("	[s] face detect & image save(JPEG)\n");
-	printf("	[q] EXIT\n\n");
+	camera_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
 
 
@@ -235,17 +216,20 @@ int init_facedetect(int argc, char** argv){
     fb_display(cis_rgb, 40, 120);
 
     // face detect, save
-    RGB2cvIMG(image, cis_rgb, 320, 240);
-    if(image){
-        ret = detect_and_draw(image);
+    RGB2cvIMG(camera_image, cis_rgb, 320, 240);
+    if(camera_image){
+        ret = detect_and_draw(camera_image);
         if(ret>0){
-            cvSaveImage(FILE_NAME, image);
+            cvSaveImage(FILE_NAME,camera_image);
         }
     }
     if(ret) ch = 'd';
 
-	cvReleaseImage(&image);
 	return 0;
 }
 
 
+
+int close_facedetect(){
+	cvReleaseImage(&camera_image);
+}

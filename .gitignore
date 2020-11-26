@@ -138,4 +138,7 @@ plan.org
 
 
 # .o files
-*.o
+/palette/*
+!/palette/*.c
+!/palette/*.h
+!/palette/Makefile
