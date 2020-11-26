@@ -15,6 +15,7 @@
 
 #include "keyboard.h"
 #include "touchlcd.h"
+#include "camera.h"
 #include "facedetect.h"
 
 
@@ -50,24 +51,23 @@ unsigned short get_color(unsigned short brush_color){
 }
 
 int main(void) {
-  init_touchlcd();
+  init_touchlcd(); //
   init_keyboard();
+  init_camera(); // camer device file : camera_fd
+  init_facedetect();
 
-  /* unsigned short white = (0b1111111111111111); */
-  /* unsigned short red = (0b11111 << 11); */
-  /* unsigned short blue = (0b111111 << 5); */
-  /* unsigned short green = (0b11111); */
-  /* unsigned short eraser = (0b11111); */
-  /* unsigned short brush_color = 0; */
+  /* facedetect variables */
+  int ret = 0;
+
+  /* palette variables */
   unsigned short white = 1;
   unsigned short red = 2;
   unsigned short blue = 3;
   unsigned short green = 4;
   unsigned short eraser = 0;
-
   unsigned short keyboard_input=0;
-  // default brush color
   unsigned short brush_color = green;
+
   char* face_file = "face_image.jpg";
   char* background_image = "background.bmp";
   unsigned char *fb_mapped;
@@ -105,7 +105,38 @@ int main(void) {
                 printf("- pressed \n");
                 brush_size -= BRUSH_STEP;
                 printf("reduce brush size, brush size: %d\n",brush_size);
-                break;
+
+            case 'c':
+                // case c havne't tested
+                // just plain camera, no image processing
+
+                printf("c pressed \n");
+                // after read_camera2rgb, cis_rgb values changed
+                read_camera2rgb();
+                // change csframe value -> show camera image on touchlcd
+                change_palette_image(cis_rgb);
+            case 'f':
+                printf("f pressed\n");
+                printf("face detection start\n");
+
+                // while loop, until the detect_face finishes, program can't get out here
+
+                // without while loop, this should be finished immediately without detecting faces
+                // withou while loop, hopefully implementation works
+                ret = detect_face(cis_rgb, fb_mapped);
+                printf("ret value: %d\n", ret);
+
+                while(ret == 0){
+                    // detect face until app finds at least one face
+                    ret = detect_face(cis_rgb, fb_mapped);
+                }
+
+                // phase#1 should be real time camera in touchlcd
+                // when it detects any face, phase#2 begins, show the
+                // detected image on the palette and make the image editable
+
+
+
             default:
                 printf("undefined key pressed \n");
                 break;
@@ -122,7 +153,10 @@ int main(void) {
   /* munmap(fb_mapped, mem_size); */
   /* close(fb_fd); */
   close_keyboard();
+  close_camera();
   close_LCD();
+
+  close_facedetect();
 
   return 0;
 }

@@ -18,10 +18,15 @@ int x_detected_prev, y_detected_prev;
 
 #define LCD_WIDTH 800
 #define LCD_HEIGHT 480
-#define PALETTE_WIDTH 400
-#define PALETTE_HEIGHT 320
+#define PALETTE_WIDTH 400 // 320 + 40*2
+#define PALETTE_HEIGHT 320 // 240 + 40*2
 #define PALETTE_START_X 395
 #define PALETTE_START_Y 80
+
+#define PALETTE_IMAGE_WIDTH 320
+#define PALETTE_IMAGE_HEIGHT 240
+#define PALETTE_IMAGE_START_X 435 // 395+40
+#define PALETTE_IMAGE_START_Y 120 // 395-40
 #define LCD_SPARK 3
 
 #define FBDEV_FILE "/dev/fb0"
@@ -47,6 +52,7 @@ void m_delay(int num);
 int GetTouch(void);
 
 void LCD_print(unsigned char *fb_mapped);
+void change_palette_image(unsigned short *rgb);
 
 // unsigned char LCDinit(char* background);
 // struct lcd_variable LCDinit(char* background);

@@ -259,22 +259,6 @@ struct lcd_variable init_palette(char* background, char* face_file){
       }
   }
 
-  /* bmpfd_face = fopen(face_file, "rb"); //파일을 읽기 모드로 엶 */
-  /* if (bmpfd_face == NULL) { */
-  /*     printf("face image open error\n"); */
-  /*     exit(1); */
-  /* } */
-  /* fseek(bmpfd_face, 54, SEEK_SET); */
-  /* lpImg_face = (char *)malloc(320*240*3); */
-  /* tempImg_face = lpImg_face; */
-  /* fread(lpImg_face, sizeof(char), 320*240*3, bmpfd_face); */
-  /* for (i = 0; i <320*240*3; i++) { */
-  /*     b = *lpImg_face++; */
-  /*     g = *lpImg_face++; */
-  /*     r = *lpImg_face++; */
-  /*     frame[j] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3); */
-  /*     j++; */
-  /* } */
 
   // copy value from frame to csframe
   for (i = 0; i < 384000; i++) {
@@ -348,6 +332,23 @@ void setFrame(int x, int y, unsigned short brush_color, int radius) {
     }
   }
 }
+
+void change_palette_image(unsigned short *rgb){
+	int coor_x, coor_y;
+	/* int screen_width; */
+	unsigned short *ptr;
+    int ystart;
+    for (coor_y = 0; coor_y < PALETTE_IMAGE_HEIGHT; coor_y++) {
+        ystart = (LCD_WIDTH * PALETTE_IMAGE_START_Y + PALETTE_IMAGE_START_X) +(LCD_WIDTH * coor_y);
+        ptr = (unsigned short *)lcdvar.fb_mapped + ystart;
+        for (coor_x = 0; coor_x < PALETTE_IMAGE_WIDTH; coor_x++){
+            /* frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR; */
+            frame[coor_x + ystart] = rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH];
+            csframe[coor_x + ystart] = rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH];
+        }
+    }
+}
+
 
 void close_LCD(){
     printf("release current lcdvar struct\n");

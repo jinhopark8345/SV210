@@ -5,6 +5,7 @@ APP = stickerphoto
 KEYBOARD = keyboard
 TOUCHLCD = touchlcd
 FACEDETECT = facedetect
+CAMERA = camera
 
 
 CFLAGS = -DNO_DEBUG -I/home/jp/Project/opencv_arm/include/opencv/ -L/home/jp/Project/opencv_arm/lib/ -lcxcore -lcv -lhighgui -lcvaux -lml
@@ -14,13 +15,14 @@ CFLAGS = -DNO_DEBUG -I/home/jp/Project/opencv_arm/include/opencv/ -L/home/jp/Pro
 
 TOUCH= $(TOUCHLCD).o
 KEYBO= $(KEYBOARD).o
+CAM= $(CAMERA).o
 FACE = $(FACEDETECT).o
 OBJS = $(APP).o
 
 all: $(APP)
 
-$(APP):$(KEYBO) $(TOUCH) $(FACE) $(OBJS)
+$(APP):$(KEYBO) $(CAM) $(TOUCH) $(FACE) $(OBJS)
 	$(CC)  $(CFLAGS) -o $@ $^
 
 clean:
-	rm -f $(OBJS) $(KEYBO) $(TOUCH) $(FACE) $(APP)
+	rm -f $(OBJS) $(KEYBO) $(CAM) $(TOUCH) $(FACE) $(APP)

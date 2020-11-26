@@ -1,4 +1,0 @@
-* dipsw
-** control on/off keyboard as well / for debugging purpose
-* unused area from the touchlcd
-maybe we can have options that user can change background image
