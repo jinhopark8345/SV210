@@ -15,7 +15,8 @@
 #include <sys/ioctl.h>
 #include <linux/fb.h>
 #include <termios.h>
-
+#include "cv.h"
+#include "highgui.h"
 #include "facedetect.h"
 
 #define RGB565(r,g,b)	((((r)>>3)<<11) | (((g)>>2)<<5) | ((b)>>3))
@@ -227,24 +228,35 @@ int init_facedetect(int argc, char** argv){
 	printf("	[s] face detect & image save(JPEG)\n");
 	printf("	[q] EXIT\n\n");
 
+	init_keyboard();
 
+	while(ch != 'q'){
+		if(kbhit()){
+			ch = readch();
+		}
 
-    write(dev, NULL, 1);
-    read(dev, cis_rgb, 320*240*2);
+		write(dev, NULL, 1);
+		read(dev, cis_rgb, 320*240*2);
 
-    fb_display(cis_rgb, 40, 120);
+		fb_display(cis_rgb, 40, 120);
 
-    // face detect, save
-    RGB2cvIMG(image, cis_rgb, 320, 240);
-    if(image){
-        ret = detect_and_draw(image);
-        if(ret>0){
-            cvSaveImage(FILE_NAME, image);
-        }
-    }
-    if(ret) ch = 'd';
+		if(ch == 'f' || ch == 's'){
+			RGB2cvIMG(image, cis_rgb, 320, 240);
+			if(image){
+				ret = detect_and_draw(image);
+
+                // cvWatershed( img0, markers );
+
+				if(ch == 's' && ret>0){
+					cvSaveImage(FILE_NAME, image);
+				}
+			}
+			if(ret) ch = 'd';
+		}
+	}
 
 	cvReleaseImage(&image);
+	close_keyboard();
 	return 0;
 }
 

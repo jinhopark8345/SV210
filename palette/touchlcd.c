@@ -197,9 +197,11 @@ struct lcd_variable init_palette(char* background, char* face_file){
   int coor_y, coor_x;
   int i;
   FILE *bmpfd;
-  FILE *bmpfd_face;
-
   char *lpImg, *tempImg;
+
+  FILE *bmpfd_face;
+  char *lpImg_face, *tempImg_face;
+
   char r, g, b;
   int j = 0;
   int cols = LCD_WIDTH, rows = LCD_HEIGHT;
@@ -230,13 +232,14 @@ struct lcd_variable init_palette(char* background, char* face_file){
 
   bmpfd = fopen(background, "rb"); //파일을 읽기 모드로 엶
   if (bmpfd == NULL) {
-      printf("파일 소환 실패\n");
+      printf("background image open error\n");
       exit(1);
   }
   fseek(bmpfd, 54, SEEK_SET);
   lpImg = (char *)malloc(1152000);
   tempImg = lpImg;
   fread(lpImg, sizeof(char), 1152000, bmpfd);
+
   for (i = 0; i < 384000; i++) {
       b = *lpImg++;
       g = *lpImg++;
@@ -244,6 +247,8 @@ struct lcd_variable init_palette(char* background, char* face_file){
       frame[j] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
       j++;
   }
+
+
 
   // setting the default frame: make the edit area white
   for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
@@ -253,6 +258,23 @@ struct lcd_variable init_palette(char* background, char* face_file){
           frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR;
       }
   }
+
+  /* bmpfd_face = fopen(face_file, "rb"); //파일을 읽기 모드로 엶 */
+  /* if (bmpfd_face == NULL) { */
+  /*     printf("face image open error\n"); */
+  /*     exit(1); */
+  /* } */
+  /* fseek(bmpfd_face, 54, SEEK_SET); */
+  /* lpImg_face = (char *)malloc(320*240*3); */
+  /* tempImg_face = lpImg_face; */
+  /* fread(lpImg_face, sizeof(char), 320*240*3, bmpfd_face); */
+  /* for (i = 0; i <320*240*3; i++) { */
+  /*     b = *lpImg_face++; */
+  /*     g = *lpImg_face++; */
+  /*     r = *lpImg_face++; */
+  /*     frame[j] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3); */
+  /*     j++; */
+  /* } */
 
   // copy value from frame to csframe
   for (i = 0; i < 384000; i++) {
@@ -274,7 +296,6 @@ struct lcd_variable init_palette(char* background, char* face_file){
   position: (x,y)
   color: color of the brush
   radius: size of the brush
-
 */
 void setFrame(int x, int y, unsigned short brush_color, int radius) {
   int j = 0;

@@ -15,6 +15,7 @@
 
 #include "keyboard.h"
 #include "touchlcd.h"
+#include "facedetect.h"
 
 
 
