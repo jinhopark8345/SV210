@@ -138,8 +138,13 @@ plan.org
 
 
 # .o files
+
+# ignore all files under palette dir
 /palette/*
-/palette/
+
+# except below files and dirs
+!/palette/old/*
+!/palette/old/
 !/palette/*.c
 !/palette/*.h
 !/palette/Makefile
