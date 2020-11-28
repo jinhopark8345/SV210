@@ -20,11 +20,8 @@
 #include "facedetect.h"
 
 #define RGB565(r,g,b)	((((r)>>3)<<11) | (((g)>>2)<<5) | ((b)>>3))
-<<<<<<< HEAD
 #define FBDEV_FILE      "/dev/fb0"
 #define CAMERA_DEVICE   "/dev/camera"
-=======
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 #define SAVE_FILE_NAME	"face_image.jpg"
 
 static CvMemStorage* storage = 0;
@@ -32,10 +29,6 @@ static CvHaarClassifierCascade* cascade = 0;
 struct fb_var_screeninfo fbvar;
 IplImage *camera_image = NULL;
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 const char *cascade_xml = "haarcascade_frontalface_alt2.xml";
 
 #if 0
@@ -86,7 +79,6 @@ void cvIMG2RGB565(IplImage *img, unsigned short *cv_rgb, int ex, int ey){
 	}
 }
 
-<<<<<<< HEAD
 void cvIMG2GRAY(IplImage *img, unsigned short *cv_gray, int ex, int ey){
         int x, y;
         unsigned char r,g,b;
@@ -106,8 +98,6 @@ void cvIMG2GRAY(IplImage *img, unsigned short *cv_gray, int ex, int ey){
 }
 
 
-=======
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 void Fill_Background(unsigned char* fb_mapped, unsigned short color){
 	int x,y;
 
@@ -153,10 +143,6 @@ int detect_and_draw(IplImage *img, unsigned char *fb_mapped, unsigned short *cis
 	int i;
 
 	cvCvtColor(img, gray, CV_BGR2GRAY);
-<<<<<<< HEAD
-=======
-
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 	cvResize(gray, small_img, CV_INTER_LINEAR);
 
 	cvEqualizeHist(small_img, small_img);
@@ -176,15 +162,9 @@ int detect_and_draw(IplImage *img, unsigned char *fb_mapped, unsigned short *cis
 			center.x = cvRound((r->x + r->width * 0.5) * scale) - 55;
 			center.y = cvRound((r->y + r->height * 0.5) * scale) - 25;
 			// radius = cvRound((r->width + r->height) * 0x35 * scale);
-<<<<<<< HEAD
             		radius = 60;
 
             		printf("radius: %d", radius);
-=======
-            radius = 60;
-
-            printf("radius: %d", radius);
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 			// radius = cvRound((r->width + r->height) * 0x35 * scale);
 			cvCircle(img, center, radius, colors[i%8], 3, 8, 0);
 			ret++;
@@ -192,15 +172,9 @@ int detect_and_draw(IplImage *img, unsigned char *fb_mapped, unsigned short *cis
 	}
 
 	cvIMG2RGB565(img, cis_rgb, img->width, img->height);
-<<<<<<< HEAD
 	 if(ret){ 
 		fb_display(fb_mapped, cis_rgb, 435, 120); 
 	} 
-=======
-	/* if(ret){ */
-	/* 	fb_display(fb_mapped, cis_rgb, 435, 120); */
-	/* } */
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 
 	cvReleaseImage(&gray);
 	cvReleaseImage(&small_img);
@@ -208,7 +182,6 @@ int detect_and_draw(IplImage *img, unsigned char *fb_mapped, unsigned short *cis
 	return ret;
 }
 
-<<<<<<< HEAD
 
 void detect_and_draw_gray(IplImage *img, unsigned char *fb_mapped, unsigned short *cis_rgb){
 	double scale = 1.3;
@@ -257,11 +230,6 @@ int init_facedetect(unsigned char *fb_mapped){
 		exit(1);
 	}
 
-=======
-int init_facedetect(){
-	int fd;
-	int ret=0;
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 
 	cascade = (CvHaarClassifierCascade*)cvLoad(cascade_xml, 0, 0, 0);
 	if(!cascade){
@@ -277,22 +245,15 @@ int init_facedetect(){
 		perror("mem open fail\n");
 		exit(1);
 	}
-<<<<<<< HEAD
 	
 
-=======
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 	camera_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
 
 	return 0;
 }
 
-<<<<<<< HEAD
 int detect_face(unsigned short *cis_rgb, unsigned char *fb_mapped,unsigned short keyboard_input){
-=======
-int detect_face(unsigned short *cis_rgb, unsigned char *fb_mapped){
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 
     int ret = 0;
 
@@ -301,7 +262,6 @@ int detect_face(unsigned short *cis_rgb, unsigned char *fb_mapped){
     /* write(camera_fd, NULL, 1); */
     /* read(camera_fd, cis_rgb, 320*240*2); // read camera_fd and write it on cis_rgb */
 
-<<<<<<< HEAD
     fb_display(fb_mapped, cis_rgb, 40, 120);
 
     RGB2cvIMG(camera_image, cis_rgb, 320, 240);
@@ -315,18 +275,6 @@ int detect_face(unsigned short *cis_rgb, unsigned char *fb_mapped){
 	} 
     }else if(camera_image && (keyboard_input == 'y')){
             detect_and_draw_gray(camera_image, fb_mapped, cis_rgb);
-=======
-    /* fb_display(fb_mapped, cis_rgb, 40, 120); */
-
-    RGB2cvIMG(camera_image, cis_rgb, 320, 240);
-    if(camera_image){
-        while(ret == 0){
-            ret = detect_and_draw(camera_image, fb_mapped, cis_rgb);
-        }
-        /* if(ret>0){ */
-        /*     cvSaveImage(SAVE_FILE_NAME,camera_image); */
-        /* } */
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
     }
     // while loop end
     return ret;

@@ -17,7 +17,6 @@
 #include "touchlcd.h"
 #include "camera.h"
 #include "facedetect.h"
-<<<<<<< HEAD
 #include "textlcd.h"
 #include "segment.h"
 
@@ -72,30 +71,6 @@ unsigned short get_color(unsigned short brush_color){
          brush_color = tmp<<5;
         printf("brush color: green\n");
 	 break;
-=======
-
-
-
-unsigned short get_color(unsigned short brush_color){
-    printf("%c pressed\n", brush_color);
-    switch (brush_color) {
-    case 'w': // white
-        brush_color = (0b1111111111111111);
-        printf("brush color: white\n");
-        break;
-    case 'r': // red
-        brush_color = (0b11111 << 11);
-        printf("brush color: red\n");
-        break;
-    case 'b': // blue
-        brush_color = (0b11111);
-        printf("brush color: blue\n");
-        break;
-    case 'g': // green
-        brush_color = (0b111111 << 5);
-        printf("brush color: green\n");
-        break;
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
     case 'e': // eraser
         brush_color = PALETTE_ERASER;
         printf("brush color: eraser\n");
@@ -103,23 +78,11 @@ unsigned short get_color(unsigned short brush_color){
     default:
         break;
     }
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
     return brush_color;
 }
 
 int main(void) {
-<<<<<<< HEAD
-=======
-  init_touchlcd(); //
-  init_keyboard();
-  init_camera(); // camer device file : camera_fd
-  init_facedetect();
-
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
   /* facedetect variables */
   int ret = 0;
 
@@ -130,7 +93,6 @@ int main(void) {
   unsigned short green = 4;
   unsigned short eraser = 0;
   unsigned short keyboard_input=0;
-<<<<<<< HEAD
   unsigned short keyboard_input_tmp = 0;
   unsigned short brush_color = green;
   unsigned short segment_flag =0; 
@@ -146,20 +108,12 @@ int main(void) {
   init_facedetect(fb_mapped);
   init_textlcd();
   init_segment();
-=======
-  unsigned short brush_color = green;
-
-  char* face_file = "face_image.jpg";
-  char* background_image = "background.bmp";
-  unsigned char *fb_mapped;
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 
   // prepare touchlcd
   init_palette(background_image, face_file);
   fb_mapped = lcdvar.fb_mapped;
 
   while (keyboard_input != 'q') {
-<<<<<<< HEAD
     segment_write(&(col.rgbcol));
 
     if(kbhit()){
@@ -184,56 +138,27 @@ int main(void) {
 		break;
             case 'e':
 		textlcd_write(keyboard_input, 0, brush_color);
-=======
-    if(kbhit()){
-        keyboard_input = readch();
-
-        switch(keyboard_input) {
-            case 'w':
-                brush_color = get_color(keyboard_input);
-                break;
-            case 'r':
-                brush_color = get_color(keyboard_input);
-                break;
-            case 'b':
-                brush_color = get_color(keyboard_input);
-                break;
-            case 'g':
-                brush_color = get_color(keyboard_input);
-                break;
-            case 'e':
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
                 brush_color = get_color(keyboard_input);
                 break;
             case '+':
                 printf("+ pressed \n");
                 brush_size += BRUSH_STEP;
                 printf("increase brush size, brush size: %d\n",brush_size);
-<<<<<<< HEAD
 		textlcd_write(keyboard_input, brush_size,0);
-=======
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
                 break;
             case '-':
                 printf("- pressed \n");
                 brush_size -= BRUSH_STEP;
-<<<<<<< HEAD
                 printf("reduce brush size, brush size: %d\n", brush_size);
 		textlcd_write(keyboard_input, brush_size,0);
 		break;
           /*  case 'c':
-=======
-                printf("reduce brush size, brush size: %d\n",brush_size);
-
-            case 'c':
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
                 // case c havne't tested
                 // just plain camera, no image processing
 
                 printf("c pressed \n");
                 // after read_camera2rgb, cis_rgb values changed
                 read_camera2rgb();
-<<<<<<< HEAD
 		 while(keyboard_input != 'q'){
                         if(kbhit()){
                                 keyboard_input = readch();
@@ -246,16 +171,10 @@ int main(void) {
 		break;*/
             case 'f':
                 textlcd_write(keyboard_input, 0,0);
-=======
-                // change csframe value -> show camera image on touchlcd
-                change_palette_image(cis_rgb);
-            case 'f':
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
                 printf("f pressed\n");
                 printf("face detection start\n");
 
                 // while loop, until the detect_face finishes, program can't get out here
-<<<<<<< HEAD
 		///////////////////if 'q' hit while face detect act--->exit face_detect
 
                 // without while loop, this should be finished immediately without detecting faces
@@ -271,23 +190,10 @@ int main(void) {
                     // detect face until app finds at least one face
                     ret = detect_face(cis_rgb, fb_mapped);
                 }*/
-=======
-
-                // without while loop, this should be finished immediately without detecting faces
-                // withou while loop, hopefully implementation works
-                ret = detect_face(cis_rgb, fb_mapped);
-                printf("ret value: %d\n", ret);
-
-                while(ret == 0){
-                    // detect face until app finds at least one face
-                    ret = detect_face(cis_rgb, fb_mapped);
-                }
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 
                 // phase#1 should be real time camera in touchlcd
                 // when it detects any face, phase#2 begins, show the
                 // detected image on the palette and make the image editable
-<<<<<<< HEAD
 		break;
 	    case 'y' ://Gray Scaling
                 textlcd_write(keyboard_input, 0,0);
@@ -309,13 +215,6 @@ int main(void) {
             default:
            	printf("%c\n", keyboard_input);
 		printf("undefined key pressed \n");
-=======
-
-
-
-            default:
-                printf("undefined key pressed \n");
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
                 break;
         }
     }
@@ -332,10 +231,7 @@ int main(void) {
   close_keyboard();
   close_camera();
   close_LCD();
-<<<<<<< HEAD
   close_textlcd();
-=======
->>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 
   close_facedetect();
 
