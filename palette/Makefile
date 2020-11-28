@@ -8,6 +8,7 @@ FACEDETECT = facedetect
 CAMERA = camera
 TEXTLCD = textlcd
 SEGMENT = segment
+DOTMATRIX = dotmatrix
 
 CFLAGS = -DNO_DEBUG -I/home/dlt8730/embbed_system/opencv_test/OpenCV_1_1_0_arm/include/opencv/ -L/home/dlt8730/embbed_system/opencv_test/OpenCV_1_1_0_arm/lib/ -lcxcore -lcv -lhighgui -lcvaux -lml
 # KDIR := /home/jp/Project/sv210/linux-2.6.32-hanback/
@@ -20,12 +21,13 @@ CAM= $(CAMERA).o
 FACE = $(FACEDETECT).o
 TEXT = $(TEXTLCD).o
 SEG = $(SEGMENT).o
+DOT = $(DOTMATRIX).o
 OBJS = $(APP).o
 
 all: $(APP)
 
-$(APP):$(KEYBO) $(CAM) $(SEG) $(TOUCH) $(FACE) $(TEXT) $(OBJS)
+$(APP):$(KEYBO) $(DOT) $(CAM) $(SEG) $(TOUCH) $(FACE) $(TEXT) $(OBJS)
 	$(CC)  $(CFLAGS) -o $@ $^
 
 clean:
-	rm -f $(OBJS) $(TEXT) $(SEG) $(KEYBO) $(CAM) $(TOUCH) $(FACE) $(APP)
+	rm -f $(OBJS) $(DOT) $(TEXT) $(SEG) $(KEYBO) $(CAM) $(TOUCH) $(FACE) $(APP)

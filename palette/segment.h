@@ -2,3 +2,5 @@
 
 void init_segmenet();
 void segment_write(unsigned short *color);
+void close_segment();
+

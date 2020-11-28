@@ -19,6 +19,9 @@
 #include "facedetect.h"
 #include "textlcd.h"
 #include "segment.h"
+#include "dotmatrix.h"
+
+#define ESC 27
 
 typedef struct set_color{
 	unsigned int rgbcol;
@@ -108,12 +111,12 @@ int main(void) {
   init_facedetect(fb_mapped);
   init_textlcd();
   init_segment();
-
+  init_dotmatrix();
   // prepare touchlcd
   init_palette(background_image, face_file);
   fb_mapped = lcdvar.fb_mapped;
 
-  while (keyboard_input != 'q') {
+  while (keyboard_input != ESC) {//ESC
     segment_write(&(col.rgbcol));
 
     if(kbhit()){
@@ -184,7 +187,18 @@ int main(void) {
 			        keyboard_input = readch();
 			}
 			ret = detect_face(cis_rgb, fb_mapped, keyboard_input);
-			printf("\n%d detected!!\n", ret);
+			if(ret > 0){
+				printf("\n%d detected!!\n", ret);
+				
+				while(keyboard_input != 'q'){
+					if(kbhit()){
+						keyboard_input = readch();
+					}
+				
+				dotmatrix_write(ret);
+				}
+				break;
+			}
 		}
              /*   while(ret == 0){
                     // detect face until app finds at least one face
@@ -208,9 +222,6 @@ int main(void) {
 		}
 	
 		break;
-	    case 'q':
-		return 0;
-		break;
 
             default:
            	printf("%c\n", keyboard_input);
@@ -232,7 +243,8 @@ int main(void) {
   close_camera();
   close_LCD();
   close_textlcd();
-
+  close_dotmatrix();
+  close_segment();
   close_facedetect();
 
   return 0;

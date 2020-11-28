@@ -12,3 +12,7 @@ void init_segment(){
 void segment_write(unsigned short * color){
 	write(seg_fd, color, 4);
 }
+
+void close_segment(){
+	close(seg_fd);
+}

@@ -11,6 +11,10 @@ segment function added
 	-Please, use the device driver which is loaded on teh SV210 board or
 	use the c file which is included in the segment folder in the palette folder.
 
+dotmatrix function added
+	-you can check detected face number
+	-use device driver on the board
+
 gray scale mode added
 	-you can see the video and real-time gray-scaled viedo.
 	-but I don't knwo how gray scale function work exactily yet.
@@ -18,3 +22,5 @@ gray scale mode added
 
 face detect mod changed
 	-When you press 'q', you can exit face detect mode
+
+
