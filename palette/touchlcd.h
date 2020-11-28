@@ -18,6 +18,7 @@ int x_detected_prev, y_detected_prev;
 
 #define LCD_WIDTH 800
 #define LCD_HEIGHT 480
+<<<<<<< HEAD
 //#define PALETTE_WIDTH 400 // 320 + 40*2
 //#define PALETTE_HEIGHT 320 // 240 + 40*2
 #define PALETTE_WIDTH 800 // 320 + 40*2
@@ -27,13 +28,22 @@ int x_detected_prev, y_detected_prev;
 //#define PALETTE_START_X 395
 //#define PALETTE_START_Y 80
 
+=======
+#define PALETTE_WIDTH 400 // 320 + 40*2
+#define PALETTE_HEIGHT 320 // 240 + 40*2
+#define PALETTE_START_X 395
+#define PALETTE_START_Y 80
+>>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 
 #define PALETTE_IMAGE_WIDTH 320
 #define PALETTE_IMAGE_HEIGHT 240
 #define PALETTE_IMAGE_START_X 435 // 395+40
 #define PALETTE_IMAGE_START_Y 120 // 395-40
+<<<<<<< HEAD
 //#define PALETTE_IMAGE_START_X 0 // 395+40
 //#define PALETTE_IMAGE_START_Y 0 // 395-40
+=======
+>>>>>>> 9905fd0efd30ceda987234beb17e5e10293133cb
 #define LCD_SPARK 3
 
 #define FBDEV_FILE "/dev/fb0"
