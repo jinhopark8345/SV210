@@ -107,6 +107,7 @@ int main(void) {
   char* face_file = "face_image.jpg";
   char* background_image = "background.bmp";
   unsigned char *fb_mapped;
+  int i;
 
 
   init_touchlcd(); //
@@ -258,9 +259,12 @@ int main(void) {
             textlcd_write(keyboard_input, 0,0);
             printf("y pressed\n");
             printf("Gray scaling start\n");
-            /* cvIMG2GRAY(gray_scale, cis_rgb, img->width, img->height);	 */
-            //this function is also used to make gray scaled video
-            detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
+
+            // not sure if this is working
+            for(i = 0; i<10;i++){
+                //this function is also used to make gray scaled video
+                detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
+            }
 
             break;
 
