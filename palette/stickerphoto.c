@@ -30,7 +30,7 @@ typedef struct set_color{
 	unsigned short green;	
 };
 
-struct set_color col={0, 0, 0, 0};
+struct set_color col={30, 30, 30, 30};
 
 unsigned short get_color(unsigned short brush_color){
     unsigned short tmp=0;
@@ -87,7 +87,7 @@ unsigned short get_color(unsigned short brush_color){
 
 int main(void) {
   /* facedetect variables */
-  int ret = 0;
+  int num_detected_face = 0;
 
   /* palette variables */
   unsigned short white = 1;
@@ -124,109 +124,113 @@ int main(void) {
 
         switch(keyboard_input) {  
 	    case 'w':
-                brush_color = get_color(keyboard_input);
-		textlcd_write(keyboard_input, 0, brush_color);
-	        break;
-            case 'r':
-                brush_color = get_color(keyboard_input);
-		textlcd_write(keyboard_input, 0, brush_color);
-		break;
-            case 'b':
-                brush_color = get_color(keyboard_input);
-		textlcd_write(keyboard_input, 0,brush_color);
-                break;
-            case 'g':
-                brush_color = get_color(keyboard_input);
-		textlcd_write(keyboard_input, 0, brush_color);
-		break;
-            case 'e':
-		textlcd_write(keyboard_input, 0, brush_color);
-                brush_color = get_color(keyboard_input);
-                break;
-            case '+':
-                printf("+ pressed \n");
-                brush_size += BRUSH_STEP;
-                printf("increase brush size, brush size: %d\n",brush_size);
-                textlcd_write(keyboard_input, brush_size,0);
-                break;
-            case '_':
-                printf("- pressed \n");
-                brush_size -= BRUSH_STEP;
-                printf("reduce brush size, brush size: %d\n", brush_size);
-                textlcd_write(keyboard_input, brush_size,0);
-                break;
-            case 'c':
-                // case c havne't tested
-                // just plain camera, no image processing
+            brush_color = get_color(keyboard_input);
+            textlcd_write(keyboard_input, 0, brush_color);
+            break;
+        case 'r':
+            brush_color = get_color(keyboard_input);
+            textlcd_write(keyboard_input, 0, brush_color);
+            break;
+        case 'b':
+            brush_color = get_color(keyboard_input);
+            textlcd_write(keyboard_input, 0,brush_color);
+            break;
+        case 'g':
+            brush_color = get_color(keyboard_input);
+            textlcd_write(keyboard_input, 0, brush_color);
+            break;
+        case 'e':
+            textlcd_write(keyboard_input, 0, brush_color);
+            brush_color = get_color(keyboard_input);
+            break;
+        case '+':
+            printf("+ pressed \n");
+            brush_size += BRUSH_STEP;
+            printf("increase brush size, brush size: %d\n",brush_size);
+            textlcd_write(keyboard_input, brush_size,0);
+            break;
+        case '_':
+            printf("- pressed \n");
+            brush_size -= BRUSH_STEP;
+            printf("reduce brush size, brush size: %d\n", brush_size);
+            textlcd_write(keyboard_input, brush_size,0);
+            break;
+        case 'c':
+            // case c havne't tested
+            // just plain camera, no image processing
 
-                printf("c pressed \n");
-                // after read_camera2rgb, cis_rgb values changed
+            printf("c pressed \n");
+            // after read_camera2rgb, cis_rgb values changed
+            read_camera2rgb();
+            while(keyboard_input != 'q'){
+                if(kbhit()){
+                    keyboard_input = readch();
+                }
+
+                // change csframe value -> show camera image on touchlcd
                 read_camera2rgb();
-                while(keyboard_input != 'q'){
-                    if(kbhit()){
-                        keyboard_input = readch();
-                    }
+                change_palette_image(cis_rgb);
+            }
+        case 'f':
+            textlcd_write(keyboard_input, 0,0);
+            printf("f pressed\n");
+            printf("face detection start\n");
 
-                    // change csframe value -> show camera image on touchlcd
-                    read_camera2rgb();
-                    change_palette_image(cis_rgb);
+            // while loop, until the detect_face finishes, program can't get out here
+            ///////////////////if 'q' hit while face detect act--->exit face_detect
+
+            // without while loop, this should be finished immediately without detecting faces
+            // withou while loop, hopefully implementation works
+            while(keyboard_input != 'q'){
+                if(kbhit()){
+                    keyboard_input = readch();
                 }
-            case 'f':
-                textlcd_write(keyboard_input, 0,0);
-                printf("f pressed\n");
-                printf("face detection start\n");
-
-                // while loop, until the detect_face finishes, program can't get out here
-                ///////////////////if 'q' hit while face detect act--->exit face_detect
-
-                // without while loop, this should be finished immediately without detecting faces
-                // withou while loop, hopefully implementation works
-                while(keyboard_input != 'q'){
-                    if(kbhit()){
-                        keyboard_input = readch();
-                    }
-                    ret = detect_face(cis_rgb, fb_mapped, keyboard_input);
-                    if(ret > 0){
-                        printf("\n%d detected!!\n", ret);
+                num_detected_face = detect_face(cis_rgb, fb_mapped, keyboard_input);
+                if(num_detected_face > 0){
+                    printf("\n%d detected!!\n", num_detected_face);
 				
-                        while(keyboard_input != 'q'){
-                            if(kbhit()){
-                                keyboard_input = readch();
-                            }
-
-                            dotmatrix_write(ret);
+                    while(keyboard_input != 'q'){
+                        if(kbhit()){
+                            keyboard_input = readch();
                         }
-                        break;
-                    }
-                }
-                /*   while(ret == 0){
-                    // detect face until app finds at least one face
-                    ret = detect_face(cis_rgb, fb_mapped);
-                }*/
 
-                // phase#1 should be real time camera in touchlcd
-                // when it detects any face, phase#2 begins, show the
-                // detected image on the palette and make the image editable
-
-                break;
-            case 'y' ://Gray Scaling
-                textlcd_write(keyboard_input, 0,0);
-                printf("y pressed\n");
-                printf("Gray scaling start\n");
-                while(keyboard_input != 'q'){
-                    if(kbhit()){
-                        keyboard_input = readch();
+                        dotmatrix_write(num_detected_face);
                     }
-                    detect_face(cis_rgb, fb_mapped,keyboard_input);
-                    //this function is also used to make gray scaled video
+                    break;
                 }
+            }
+
+            while(num_detected_face == 0){
+
+            }
+            /*   while(ret == 0){
+            // detect face until app finds at least one face
+            ret = detect_face(cis_rgb, fb_mapped);
+            }*/
+
+            // phase#1 should be real time camera in touchlcd
+            // when it detects any face, phase#2 begins, show the
+            // detected image on the palette and make the image editable
+
+            break;
+        case 'y' ://Gray Scaling
+            textlcd_write(keyboard_input, 0,0);
+            printf("y pressed\n");
+            printf("Gray scaling start\n");
+            while(keyboard_input != 'q'){
+                if(kbhit()){
+                    keyboard_input = readch();
+                }
+                detect_face(cis_rgb, fb_mapped,keyboard_input);
+                //this function is also used to make gray scaled video
+            }
 	
-                break;
+            break;
 
-            default:
-                printf("%c\n", keyboard_input);
-                printf("undefined key pressed \n");
-                break;
+        default:
+            printf("%c\n", keyboard_input);
+            printf("undefined key pressed \n");
+            break;
         }
     }
 
