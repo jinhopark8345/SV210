@@ -1,4 +1,14 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+
 #include "textlcd.h"
+
 
 int text_dev;
 struct strcommand_varible strcommand;

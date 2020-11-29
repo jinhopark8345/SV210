@@ -24,7 +24,7 @@
 #define ESC 27
 
 typedef struct set_color{
-	unsigned int rgbcol;
+	unsigned short rgbcol;
 	unsigned short red;
 	unsigned short blue;
 	unsigned short green;	
@@ -37,43 +37,43 @@ unsigned short get_color(unsigned short brush_color){
     printf("%c pressed\n", brush_color);
     switch (brush_color) {
     case 'w': 
-	 brush_color = 0b1111111111111111;
-	 printf("brush color: white\n");
-	 break;
+        brush_color = 0b1111111111111111;
+        printf("brush color: white\n");
+        break;
     case 'r': // red
-       // brush_color = (0b11111 << 11);
-         col.red += 6;//0b11111/10  10 steps for 7 segment
-	 if(col.red>=63){
-		col.red = 0;
-	 }
-	 tmp = col.red;
-	col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
-	printf("%d\n", col.rgbcol);
-	brush_color = tmp<<10;
-	 printf("brush color: red\n");
+        // brush_color = (0b11111 << 11);
+        col.red += 6;//0b11111/10  10 steps for 7 segment
+        if(col.red>=63){
+            col.red = 0;
+        }
+        tmp = col.red;
+        col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
+        printf("%d\n", col.rgbcol);
+        brush_color = tmp<<10;
+        printf("brush color: red\n");
         break;
     case 'b': // blue
-       // brush_color = (0b11111);
-         col.blue += 6;//0b111111/10  10 steps for 7 segment
-         if(col.blue>=63){
-                col.blue = 0;
-         }
-         tmp = col.blue;
-	col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
-         brush_color = tmp;
-	 printf("brush color: blue\n");
+        // brush_color = (0b11111);
+        col.blue += 6;//0b111111/10  10 steps for 7 segment
+        if(col.blue>=63){
+            col.blue = 0;
+        }
+        tmp = col.blue;
+        col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
+        brush_color = tmp;
+        printf("brush color: blue\n");
         break;
     case 'g': // green
-       // brush_color = (0b111111 << 5);
-         col.green += 6;//0b111111/10  10 steps for 7 segment
-         if(col.green>=63){
-                col.green = 0;
-         }
-         tmp = col.green;
-	col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
-         brush_color = tmp<<5;
+        // brush_color = (0b111111 << 5);
+        col.green += 6;//0b111111/10  10 steps for 7 segment
+        if(col.green>=63){
+            col.green = 0;
+        }
+        tmp = col.green;
+        col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
+        brush_color = tmp<<5;
         printf("brush color: green\n");
-	 break;
+        break;
     case 'e': // eraser
         brush_color = PALETTE_ERASER;
         printf("brush color: eraser\n");
@@ -147,60 +147,59 @@ int main(void) {
                 printf("+ pressed \n");
                 brush_size += BRUSH_STEP;
                 printf("increase brush size, brush size: %d\n",brush_size);
-		textlcd_write(keyboard_input, brush_size,0);
+                textlcd_write(keyboard_input, brush_size,0);
                 break;
-            case '-':
+            case '_':
                 printf("- pressed \n");
                 brush_size -= BRUSH_STEP;
                 printf("reduce brush size, brush size: %d\n", brush_size);
-		textlcd_write(keyboard_input, brush_size,0);
-		break;
-          /*  case 'c':
+                textlcd_write(keyboard_input, brush_size,0);
+                break;
+            case 'c':
                 // case c havne't tested
                 // just plain camera, no image processing
 
                 printf("c pressed \n");
                 // after read_camera2rgb, cis_rgb values changed
                 read_camera2rgb();
-		 while(keyboard_input != 'q'){
-                        if(kbhit()){
-                                keyboard_input = readch();
-                        }
+                while(keyboard_input != 'q'){
+                    if(kbhit()){
+                        keyboard_input = readch();
+                    }
 
-               		 // change csframe value -> show camera image on touchlcd
-               		  read_camera2rgb();
-			 change_palette_image(cis_rgb);
-		}	
-		break;*/
+                    // change csframe value -> show camera image on touchlcd
+                    read_camera2rgb();
+                    change_palette_image(cis_rgb);
+                }
             case 'f':
                 textlcd_write(keyboard_input, 0,0);
                 printf("f pressed\n");
                 printf("face detection start\n");
 
                 // while loop, until the detect_face finishes, program can't get out here
-		///////////////////if 'q' hit while face detect act--->exit face_detect
+                ///////////////////if 'q' hit while face detect act--->exit face_detect
 
                 // without while loop, this should be finished immediately without detecting faces
                 // withou while loop, hopefully implementation works
-		while(keyboard_input != 'q'){
-			if(kbhit()){
-			        keyboard_input = readch();
-			}
-			ret = detect_face(cis_rgb, fb_mapped, keyboard_input);
-			if(ret > 0){
-				printf("\n%d detected!!\n", ret);
+                while(keyboard_input != 'q'){
+                    if(kbhit()){
+                        keyboard_input = readch();
+                    }
+                    ret = detect_face(cis_rgb, fb_mapped, keyboard_input);
+                    if(ret > 0){
+                        printf("\n%d detected!!\n", ret);
 				
-				while(keyboard_input != 'q'){
-					if(kbhit()){
-						keyboard_input = readch();
-					}
-				
-				dotmatrix_write(ret);
-				}
-				break;
-			}
-		}
-             /*   while(ret == 0){
+                        while(keyboard_input != 'q'){
+                            if(kbhit()){
+                                keyboard_input = readch();
+                            }
+
+                            dotmatrix_write(ret);
+                        }
+                        break;
+                    }
+                }
+                /*   while(ret == 0){
                     // detect face until app finds at least one face
                     ret = detect_face(cis_rgb, fb_mapped);
                 }*/
@@ -208,24 +207,25 @@ int main(void) {
                 // phase#1 should be real time camera in touchlcd
                 // when it detects any face, phase#2 begins, show the
                 // detected image on the palette and make the image editable
-		break;
-	    case 'y' ://Gray Scaling
+
+                break;
+            case 'y' ://Gray Scaling
                 textlcd_write(keyboard_input, 0,0);
                 printf("y pressed\n");
                 printf("Gray scaling start\n");
                 while(keyboard_input != 'q'){
-                        if(kbhit()){
-                                keyboard_input = readch();
-                        }
-                        detect_face(cis_rgb, fb_mapped,keyboard_input);
-                //this function is also used to make gray scaled video
-		}
+                    if(kbhit()){
+                        keyboard_input = readch();
+                    }
+                    detect_face(cis_rgb, fb_mapped,keyboard_input);
+                    //this function is also used to make gray scaled video
+                }
 	
-		break;
+                break;
 
             default:
-           	printf("%c\n", keyboard_input);
-		printf("undefined key pressed \n");
+                printf("%c\n", keyboard_input);
+                printf("undefined key pressed \n");
                 break;
         }
     }
