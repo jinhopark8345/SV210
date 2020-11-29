@@ -65,5 +65,5 @@ recursive inclusions; for example, a case where “file1.h” includes
     - c : start camera
     - s : save image 
     - S : load saved image and start editing
-
 ## implement modularized facedetection 
+## implement modularized grayscaling 

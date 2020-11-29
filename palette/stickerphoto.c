@@ -173,6 +173,8 @@ int main(void) {
 
         case 'c':
             printf("c pressed, plain camera starts, save image with 's' \n");
+            printf("quit: q \n");
+
             while(keyboard_input != 'q'){
 
                 // after read_camera2rgb, cis_rgb values changed
@@ -225,6 +227,7 @@ int main(void) {
             textlcd_write(keyboard_input, 0,0);
             printf("f pressed\n");
             printf("face detection start\n");
+            printf("quit: q \n");
 
             while(keyboard_input != 'q'){
                 // loop until only if user hasn't pressed 'q' or a face hasn't detected
