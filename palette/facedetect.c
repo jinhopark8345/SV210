@@ -25,7 +25,6 @@
 static CvMemStorage* storage = 0;
 static CvHaarClassifierCascade* cascade = 0;
 struct fb_var_screeninfo fbvar;
-IplImage *camera_image = NULL;
 
 const char *cascade_xml = "haarcascade_frontalface_alt2.xml";
 
@@ -129,9 +128,9 @@ int detect_and_draw(IplImage *img, unsigned char *fb_mapped, unsigned short *cis
 			center.x = cvRound((r->x + r->width * 0.5) * scale) - 55;
 			center.y = cvRound((r->y + r->height * 0.5) * scale) - 25;
 			// radius = cvRound((r->width + r->height) * 0x35 * scale);
-            		radius = 60;
+            radius = 60;
 
-            		printf("radius: %d", radius);
+            printf("radius: %d", radius);
 			// radius = cvRound((r->width + r->height) * 0x35 * scale);
 			cvCircle(img, center, radius, colors[i%8], 3, 8, 0);
 			ret++;
@@ -150,6 +149,7 @@ int detect_and_draw(IplImage *img, unsigned char *fb_mapped, unsigned short *cis
 	return ret;
 }
 
+/* int detect_face(IplImage *cv_image, unsigned short *cis_rgb, unsigned char *fb_mapped){ */
 
 void detect_and_draw_gray(IplImage *img, unsigned char *fb_mapped, unsigned short *cis_rgb){
 	double scale = 1.3;
@@ -188,42 +188,69 @@ int init_facedetect(unsigned char *fb_mapped){
 	}
 	
 
-	camera_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
+	/* camera_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3); */
 
 
 	return 0;
 }
 
-int detect_face(unsigned short *cis_rgb, unsigned char *fb_mapped){
+int detect_face(IplImage *cv_image, unsigned short *cis_rgb, unsigned char *fb_mapped){
 
     int ret = 0;
 
-    // while loop start
-    read_camera2rgb();
-    /* write(camera_fd, NULL, 1); */
-    /* read(camera_fd, cis_rgb, 320*240*2); // read camera_fd and write it on cis_rgb */
+	double scale = 1.3;
+	CvSize x = cvSize(cvRound (cv_image->width/scale), cvRound (cv_image->height/scale));
+	IplImage *gray = cvCreateImage(cvSize(cv_image->width, cv_image->height), 8, 1);
+	IplImage *small_img = cvCreateImage(x, 8, 1);
+    int i;
 
-    /* fb_display(fb_mapped, cis_rgb, 40, 120); */
+	static CvScalar colors[] = {
+					{{0,0,255}},
+					{{0,128,255}},
+					{{0,255,255}},
+					{{0,255,255}},
+					{{255,128,0}},
+					{{255,255,0}},
+					{{255,0,0}},
+					{{255,0,255}}
+				};
 
-    RGB2cvIMG(camera_image, cis_rgb, 320, 240);
-    if(camera_image){
-        //Depend on what keyboard did you press, function is different.
-        //	if(ret == 0){
-        ret = detect_and_draw(camera_image, fb_mapped, cis_rgb);
-        // }
-        if(ret>0){ 
-            cvSaveImage(SAVE_FILE_NAME,camera_image);
+
+	cvCvtColor(cv_image, gray, CV_BGR2GRAY);
+	cvResize(gray, small_img, CV_INTER_LINEAR);
+
+	cvEqualizeHist(small_img, small_img);
+
+	cvClearMemStorage(storage);
+
+    // convert camera(rgb) image to cv image
+    RGB2cvIMG(cv_image, cis_rgb, 320, 240);
+
+    if(cv_image){
+        if(cascade){
+            /* CvSeq *faces = cvHaarDetectObjects(gray, cascade, storage, 1.1, 2, 0,cvSize(30,30)); */
+            CvSeq *faces = cvHaarDetectObjects(gray, cascade, storage, 1.1, 2, 0 /*CV_HAAR_DO_CANNY_PRUNING*/, cvSize(30,30));
+            for(i=0; i<(faces ? faces->total : 0); i++){
+                ret++;
+            }
         }
     }
-    /* else if(camera_image && (keyboard_input == 'y')){ */
-    /*     detect_and_draw_gray(camera_image, fb_mapped, cis_rgb); */
-    /* } */
-    // while loop end
+
+	cvReleaseImage(&gray);
+	cvReleaseImage(&small_img);
+
     return ret;
 }
 
 
 
 int close_facedetect(){
-	cvReleaseImage(&camera_image);
+
+    //
+	cvClearMemStorage(storage);
+    // maybe clear these vars as well?
+    /* static CvMemStorage* storage = 0; */
+    /* static CvHaarClassifierCascade* cascade = 0; */
+    /* struct fb_var_screeninfo fbvar; */
+
 }

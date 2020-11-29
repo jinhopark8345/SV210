@@ -165,8 +165,10 @@ int main(void) {
 
 
         case 's':
-            print("save current touchlcd image");
-            keyboard_input = KEYBOARD_WAITING
+            printf("save current touchlcd image");
+            keyboard_input = KEYBOARD_WAITING;
+
+            break;
 
         case 'c':
             printf("c pressed, plain camera starts, save image with 's' \n");
@@ -214,61 +216,53 @@ int main(void) {
                     break;
                 }
             }
+
+            break;
+
         case 'f':
+            // start face detecting and after the app detects any face, start editing
             textlcd_write(keyboard_input, 0,0);
             printf("f pressed\n");
             printf("face detection start\n");
 
-            // while loop, until the detect_face finishes, program can't get out here
-            ///////////////////if 'q' hit while face detect act--->exit face_detect
-
-            // without while loop, this should be finished immediately without detecting faces
-            // withou while loop, hopefully implementation works
             while(keyboard_input != 'q'){
+                // loop until only if user hasn't pressed 'q' or a face hasn't detected
                 if(kbhit()){
                     keyboard_input = readch();
                 }
-                num_detected_face = detect_face(cis_rgb, fb_mapped);
+                printf("keyboard input: %c \n", keyboard_input);
+
+                // after read_camera2rgb, cis_rgb values changed
+                read_camera2rgb();
+
+                // change csframe value -> show camera image on touchlcd
+                change_palette_image(cis_rgb);
+
+                // display changed csframe values
+                LCD_print(fb_mapped);
+
+                // detect face based on cis_rgb
+                num_detected_face = detect_face(temp_cv_image, cis_rgb, fb_mapped);
+                printf("%d detected!!\n", num_detected_face);
+                dotmatrix_write(num_detected_face);
+
                 if(num_detected_face > 0){
-                    printf("\n%d detected!!\n", num_detected_face);
-
-                    /* while(keyboard_input != 'q'){ */
-                    /*     if(kbhit()){ */
-                    /*         keyboard_input = readch(); */
-                    /*     } */
-
-                    /*     dotmatrix_write(num_detected_face); */
-                    /* } */
-                    /* break; */
+                    keyboard_input = 'q';
                 }
             }
 
-            while(num_detected_face == 0){
+            break;
 
-            }
-            /*   while(ret == 0){
-            // detect face until app finds at least one face
-            ret = detect_face(cis_rgb, fb_mapped);
-            }*/
-
-            // phase#1 should be real time camera in touchlcd
-            // when it detects any face, phase#2 begins, show the
-            // detected image on the palette and make the image editable
+        case 'y' :
+            //Gray Scaling
+            textlcd_write(keyboard_input, 0,0);
+            printf("y pressed\n");
+            printf("Gray scaling start\n");
+            /* cvIMG2GRAY(gray_scale, cis_rgb, img->width, img->height);	 */
+            //this function is also used to make gray scaled video
+            detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
 
             break;
-        /* case 'y' ://Gray Scaling */
-        /*     textlcd_write(keyboard_input, 0,0); */
-        /*     printf("y pressed\n"); */
-        /*     printf("Gray scaling start\n"); */
-        /*     while(keyboard_input != 'q'){ */
-        /*         if(kbhit()){ */
-        /*             keyboard_input = readch(); */
-        /*         } */
-        /*         detect_face(cis_rgb, fb_mapped); */
-        /*         //this function is also used to make gray scaled video */
-        /*     } */
-
-        /*     break; */
 
         default:
             printf("%c\n", keyboard_input);
