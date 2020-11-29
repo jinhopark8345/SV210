@@ -162,9 +162,6 @@ int main(void) {
             textlcd_write(keyboard_input, brush_size,0);
             break;
 
-            // it's not necessary to start using app(stickerphoto) with face-detect, most of the users will want to take photo as they want and edit the image
-
-
         case 's':
             printf("save current touchlcd image");
             keyboard_input = KEYBOARD_WAITING;
@@ -172,6 +169,9 @@ int main(void) {
             break;
 
         case 'c':
+            // it's not necessary to start using app(stickerphoto)
+            // with face-detect, most of the users will want to take
+            // photo as they want and edit the image
             printf("c pressed, plain camera starts, save image with 's' \n");
             printf("quit: q \n");
 
