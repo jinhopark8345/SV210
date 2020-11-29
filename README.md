@@ -56,5 +56,13 @@ These header guards prevent redeclaration of any identifiers such as
 types, enums, classes, and static variables. They also prevent
 recursive inclusions; for example, a case where “file1.h” includes
 “file2.h” and “file2.h” includes “file1.h”.
-
 ## clean up indentation 
+
+## modularize facedetect
+we facedetect module should not have touchlcd or camera module if it
+needs, it should get as a parameter
+
+- init_facdetect.c: remove other device driver opening part from facedetect.c
+- 
+## camera part 
+

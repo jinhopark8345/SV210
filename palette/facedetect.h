@@ -16,7 +16,7 @@ void detect_and_draw_gray(IplImage *img, unsigned char *fb_mapped, unsigned shor
 
 int init_facedetect(unsigned char *fb_mapped);
 
-int detect_face(unsigned short *cis_rgb, unsigned char *fb_mapped, unsigned short keyboard_input);
+int detect_face(unsigned short *cis_rgb, unsigned char *fb_mapped);
 int close_facedetect();
 
 

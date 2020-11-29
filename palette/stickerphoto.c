@@ -21,6 +21,8 @@
 #include "segment.h"
 #include "dotmatrix.h"
 
+
+#define KEYBOARD_WAITING 0
 #define ESC 27
 
 typedef struct set_color{
@@ -95,15 +97,17 @@ int main(void) {
   unsigned short blue = 3;
   unsigned short green = 4;
   unsigned short eraser = 0;
-  unsigned short keyboard_input=0;
+  unsigned short keyboard_input=KEYBOARD_WAITING;
   unsigned short keyboard_input_tmp = 0;
   unsigned short brush_color = green;
   unsigned short segment_flag =0; 
   unsigned short tmp_red=0, tmp_blue=0, tmp_green=0;
+
+  IplImage *temp_cv_image = NULL;
   char* face_file = "face_image.jpg";
   char* background_image = "background.bmp";
   unsigned char *fb_mapped;
-  
+
 
   init_touchlcd(); //
   init_keyboard();
@@ -112,9 +116,10 @@ int main(void) {
   init_textlcd();
   init_segment();
   init_dotmatrix();
-  // prepare touchlcd
-  init_palette(background_image, face_file);
+  init_palette(background_image, face_file);   // prepare touchlcd
+
   fb_mapped = lcdvar.fb_mapped;
+  temp_cv_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
   while (keyboard_input != ESC) {//ESC
     segment_write(&(col.rgbcol));
@@ -155,21 +160,59 @@ int main(void) {
             printf("reduce brush size, brush size: %d\n", brush_size);
             textlcd_write(keyboard_input, brush_size,0);
             break;
-        case 'c':
-            // case c havne't tested
-            // just plain camera, no image processing
 
-            printf("c pressed \n");
-            // after read_camera2rgb, cis_rgb values changed
-            read_camera2rgb();
+            // it's not necessary to start using app(stickerphoto) with face-detect, most of the users will want to take photo as they want and edit the image
+
+
+        case 's':
+            print("save current touchlcd image");
+            keyboard_input = KEYBOARD_WAITING
+
+        case 'c':
+            printf("c pressed, plain camera starts, save image with 's' \n");
             while(keyboard_input != 'q'){
+
+                // after read_camera2rgb, cis_rgb values changed
+                // change csframe value -> show camera image on touchlcd
+                read_camera2rgb();
+                change_palette_image(cis_rgb);
+
+                // display changed csframe values
+                LCD_print(fb_mapped);
+
                 if(kbhit()){
                     keyboard_input = readch();
                 }
 
-                // change csframe value -> show camera image on touchlcd
-                read_camera2rgb();
-                change_palette_image(cis_rgb);
+                if(keyboard_input == 's'){
+                    RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
+
+                    // save image as cv format
+                    cvSaveImage(face_file, temp_cv_image);
+                    printf("s pressed, save image, saved file name: %s\n", face_file);
+
+                    // go back to original state
+                    keyboard_input = 'c';
+                }
+
+                if(keyboard_input == 'S'){
+                    printf("S pressed, start editing, use last saved image\n");
+
+                    // start editing with the photo the user just took(last photo for now)
+
+                    // from cvImg format to rgb format for displaying, currently since I am not opening face_file, it can only work with the last captured image
+                    cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
+
+                    // save face_file rgb value to csframe for editing purpose
+                    change_palette_image(cis_rgb);
+
+                    // to show the user that saved image has been loaded
+                    LCD_print(fb_mapped);
+
+                    // go back to original state
+                    keyboard_input = 'c';
+                    break;
+                }
             }
         case 'f':
             textlcd_write(keyboard_input, 0,0);
@@ -185,18 +228,18 @@ int main(void) {
                 if(kbhit()){
                     keyboard_input = readch();
                 }
-                num_detected_face = detect_face(cis_rgb, fb_mapped, keyboard_input);
+                num_detected_face = detect_face(cis_rgb, fb_mapped);
                 if(num_detected_face > 0){
                     printf("\n%d detected!!\n", num_detected_face);
-				
-                    while(keyboard_input != 'q'){
-                        if(kbhit()){
-                            keyboard_input = readch();
-                        }
 
-                        dotmatrix_write(num_detected_face);
-                    }
-                    break;
+                    /* while(keyboard_input != 'q'){ */
+                    /*     if(kbhit()){ */
+                    /*         keyboard_input = readch(); */
+                    /*     } */
+
+                    /*     dotmatrix_write(num_detected_face); */
+                    /* } */
+                    /* break; */
                 }
             }
 
@@ -213,24 +256,25 @@ int main(void) {
             // detected image on the palette and make the image editable
 
             break;
-        case 'y' ://Gray Scaling
-            textlcd_write(keyboard_input, 0,0);
-            printf("y pressed\n");
-            printf("Gray scaling start\n");
-            while(keyboard_input != 'q'){
-                if(kbhit()){
-                    keyboard_input = readch();
-                }
-                detect_face(cis_rgb, fb_mapped,keyboard_input);
-                //this function is also used to make gray scaled video
-            }
-	
-            break;
+        /* case 'y' ://Gray Scaling */
+        /*     textlcd_write(keyboard_input, 0,0); */
+        /*     printf("y pressed\n"); */
+        /*     printf("Gray scaling start\n"); */
+        /*     while(keyboard_input != 'q'){ */
+        /*         if(kbhit()){ */
+        /*             keyboard_input = readch(); */
+        /*         } */
+        /*         detect_face(cis_rgb, fb_mapped); */
+        /*         //this function is also used to make gray scaled video */
+        /*     } */
+
+        /*     break; */
 
         default:
             printf("%c\n", keyboard_input);
             printf("undefined key pressed \n");
             break;
+
         }
     }
 
