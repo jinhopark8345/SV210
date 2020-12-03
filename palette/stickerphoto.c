@@ -185,7 +185,11 @@ void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
     }
 }
 
-int main(void) {
+
+
+
+
+void init_stickerphoto(){
 
   /* palette variables */
   unsigned short white = 1;
@@ -195,15 +199,15 @@ int main(void) {
   unsigned short eraser = 0;
   unsigned short user_input_tmp = 0;
   unsigned short brush_color = green;
-  unsigned short segment_flag =0; 
+  unsigned short segment_flag =0;
   unsigned short tmp_red=0, tmp_blue=0, tmp_green=0;
 
   IplImage *temp_cv_image = NULL;
   char* face_file = "face_image.jpg";
   char* background_image = "background.bmp";
   unsigned char *fb_mapped;
+  unsigned short keypad_input = -1;
   int i;
-
 
   init_gpio();
   init_keypad();
@@ -220,10 +224,16 @@ int main(void) {
   fb_mapped = lcdvar.fb_mapped;
   temp_cv_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
+
+
   while (user_input != ESC) {//ESC
     segment_write(&(col.rgbcol));
 
+    keypad_input = read_keypad();
+    printf("keypad value: %c\n", keypad_input);
+
     if(kbhit()){
+        /* user_input = read_keypad(); */
         user_input = readch();
 
         switch(user_input) {
@@ -318,6 +328,9 @@ int main(void) {
   close_dotmatrix();
   close_segment();
   close_facedetect();
+}
 
-  return 0;
+int main(void) {
+    init_stickerphoto();
+    return 0;
 }

@@ -5,6 +5,7 @@ int keypad_fd;
 
 void init_keypad();
 void close_keypad();
-// void segment_write(unsigned short *color);
+unsigned short read_keypad();
+unsigned short translate_keypad();
 
 #endif
