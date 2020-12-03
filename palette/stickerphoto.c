@@ -20,11 +20,15 @@
 #include "textlcd.h"
 #include "segment.h"
 #include "dotmatrix.h"
+#include "gpio.h"
+#include "keypad.h"
+#include "dipsw.h"
 
 
 #define KEYBOARD_WAITING 0
 #define ESC 27
 
+unsigned short user_input=KEYBOARD_WAITING;
 typedef struct set_color{
 	unsigned short rgbcol;
 	unsigned short red;
@@ -87,9 +91,101 @@ unsigned short get_color(unsigned short brush_color){
     return brush_color;
 }
 
+
+void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* face_file){
+
+    // it's not necessary to start using app(stickerphoto)
+    // with face-detect, most of the users will want to take
+    // photo as they want and edit the image
+    printf("c pressed, plain camera starts, save image with 's' \n");
+    printf("quit: q \n");
+
+    while(user_input != 'q'){
+
+        // after read_camera2rgb, cis_rgb values changed
+        // change csframe value -> show camera image on touchlcd
+        read_camera2rgb();
+        change_palette_image(cis_rgb);
+
+        // display changed csframe values
+        LCD_print(fb_mapped);
+
+        if(kbhit()){
+            user_input = readch();
+        }
+
+        if(user_input == 's'){
+            RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
+
+            // save image as cv format
+            cvSaveImage(face_file, temp_cv_image);
+            printf("s pressed, save image, saved file name: %s\n", face_file);
+
+            // go back to original state
+            user_input = 'c';
+        }
+
+        if(user_input == 'S'){
+            printf("S pressed, start editing, use last saved image\n");
+
+            // start editing with the photo the user just took(last photo for now)
+
+            // from cvImg format to rgb format for displaying, currently since I am not opening face_file, it can only work with the last captured image
+            cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
+
+            // save face_file rgb value to csframe for editing purpose
+            change_palette_image(cis_rgb);
+
+            // to show the user that saved image has been loaded
+            LCD_print(fb_mapped);
+
+            // go back to original state
+            user_input = 'c';
+            break;
+        }
+    }
+
+}
+
+void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
+
+    /* facedetect variables */
+    int num_detected_face = 0;
+
+    // start face detecting and after the app detects any face, start editing
+    textlcd_write(user_input, 0,0);
+    printf("f pressed\n");
+    printf("face detection start\n");
+    printf("quit: q \n");
+
+    while(user_input != 'q'){
+        // loop until only if user hasn't pressed 'q' or a face hasn't detected
+        if(kbhit()){
+            user_input = readch();
+        }
+        printf("keyboard input: %c \n", user_input);
+
+        // after read_camera2rgb, cis_rgb values changed
+        read_camera2rgb();
+
+        // change csframe value -> show camera image on touchlcd
+        change_palette_image(cis_rgb);
+
+        // display changed csframe values
+        LCD_print(fb_mapped);
+
+        // detect face based on cis_rgb
+        num_detected_face = detect_face(temp_cv_image, cis_rgb, fb_mapped);
+        printf("%d detected!!\n", num_detected_face);
+        dotmatrix_write(num_detected_face);
+
+        if(num_detected_face > 0){
+            user_input = 'q';
+        }
+    }
+}
+
 int main(void) {
-  /* facedetect variables */
-  int num_detected_face = 0;
 
   /* palette variables */
   unsigned short white = 1;
@@ -97,8 +193,7 @@ int main(void) {
   unsigned short blue = 3;
   unsigned short green = 4;
   unsigned short eraser = 0;
-  unsigned short keyboard_input=KEYBOARD_WAITING;
-  unsigned short keyboard_input_tmp = 0;
+  unsigned short user_input_tmp = 0;
   unsigned short brush_color = green;
   unsigned short segment_flag =0; 
   unsigned short tmp_red=0, tmp_blue=0, tmp_green=0;
@@ -110,6 +205,9 @@ int main(void) {
   int i;
 
 
+  init_gpio();
+  init_keypad();
+  init_dipsw();
   init_touchlcd(); //
   init_keyboard();
   init_camera(); // camer device file : camera_fd
@@ -122,144 +220,66 @@ int main(void) {
   fb_mapped = lcdvar.fb_mapped;
   temp_cv_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
-  while (keyboard_input != ESC) {//ESC
+  while (user_input != ESC) {//ESC
     segment_write(&(col.rgbcol));
 
     if(kbhit()){
-        keyboard_input = readch();
+        user_input = readch();
 
-        switch(keyboard_input) {  
+        switch(user_input) {
+        case ESC:
+            printf("ESC pressed \n");
+            printf("exit the program\n");
 	    case 'w':
-            brush_color = get_color(keyboard_input);
-            textlcd_write(keyboard_input, 0, brush_color);
+            brush_color = get_color(user_input);
+            textlcd_write(user_input, 0, brush_color);
             break;
         case 'r':
-            brush_color = get_color(keyboard_input);
-            textlcd_write(keyboard_input, 0, brush_color);
+            brush_color = get_color(user_input);
+            textlcd_write(user_input, 0, brush_color);
             break;
         case 'b':
-            brush_color = get_color(keyboard_input);
-            textlcd_write(keyboard_input, 0,brush_color);
+            brush_color = get_color(user_input);
+            textlcd_write(user_input, 0,brush_color);
             break;
         case 'g':
-            brush_color = get_color(keyboard_input);
-            textlcd_write(keyboard_input, 0, brush_color);
+            brush_color = get_color(user_input);
+            textlcd_write(user_input, 0, brush_color);
             break;
         case 'e':
-            textlcd_write(keyboard_input, 0, brush_color);
-            brush_color = get_color(keyboard_input);
+            textlcd_write(user_input, 0, brush_color);
+            brush_color = get_color(user_input);
             break;
         case '+':
             printf("+ pressed \n");
             brush_size += BRUSH_STEP;
             printf("increase brush size, brush size: %d\n",brush_size);
-            textlcd_write(keyboard_input, brush_size,0);
+            textlcd_write(user_input, brush_size,0);
             break;
         case '_':
             printf("- pressed \n");
             brush_size -= BRUSH_STEP;
             printf("reduce brush size, brush size: %d\n", brush_size);
-            textlcd_write(keyboard_input, brush_size,0);
+            textlcd_write(user_input, brush_size,0);
             break;
 
         case 's':
             printf("save current touchlcd image");
-            keyboard_input = KEYBOARD_WAITING;
+            user_input = KEYBOARD_WAITING;
 
             break;
 
         case 'c':
-            // it's not necessary to start using app(stickerphoto)
-            // with face-detect, most of the users will want to take
-            // photo as they want and edit the image
-            printf("c pressed, plain camera starts, save image with 's' \n");
-            printf("quit: q \n");
-
-            while(keyboard_input != 'q'){
-
-                // after read_camera2rgb, cis_rgb values changed
-                // change csframe value -> show camera image on touchlcd
-                read_camera2rgb();
-                change_palette_image(cis_rgb);
-
-                // display changed csframe values
-                LCD_print(fb_mapped);
-
-                if(kbhit()){
-                    keyboard_input = readch();
-                }
-
-                if(keyboard_input == 's'){
-                    RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
-
-                    // save image as cv format
-                    cvSaveImage(face_file, temp_cv_image);
-                    printf("s pressed, save image, saved file name: %s\n", face_file);
-
-                    // go back to original state
-                    keyboard_input = 'c';
-                }
-
-                if(keyboard_input == 'S'){
-                    printf("S pressed, start editing, use last saved image\n");
-
-                    // start editing with the photo the user just took(last photo for now)
-
-                    // from cvImg format to rgb format for displaying, currently since I am not opening face_file, it can only work with the last captured image
-                    cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
-
-                    // save face_file rgb value to csframe for editing purpose
-                    change_palette_image(cis_rgb);
-
-                    // to show the user that saved image has been loaded
-                    LCD_print(fb_mapped);
-
-                    // go back to original state
-                    keyboard_input = 'c';
-                    break;
-                }
-            }
-
+            init_sp_camera(fb_mapped, temp_cv_image, face_file);
             break;
 
         case 'f':
-            // start face detecting and after the app detects any face, start editing
-            textlcd_write(keyboard_input, 0,0);
-            printf("f pressed\n");
-            printf("face detection start\n");
-            printf("quit: q \n");
-
-            while(keyboard_input != 'q'){
-                // loop until only if user hasn't pressed 'q' or a face hasn't detected
-                if(kbhit()){
-                    keyboard_input = readch();
-                }
-                printf("keyboard input: %c \n", keyboard_input);
-
-                // after read_camera2rgb, cis_rgb values changed
-                read_camera2rgb();
-
-                // change csframe value -> show camera image on touchlcd
-                change_palette_image(cis_rgb);
-
-                // display changed csframe values
-                LCD_print(fb_mapped);
-
-                // detect face based on cis_rgb
-                num_detected_face = detect_face(temp_cv_image, cis_rgb, fb_mapped);
-                printf("%d detected!!\n", num_detected_face);
-                dotmatrix_write(num_detected_face);
-
-                if(num_detected_face > 0){
-                    keyboard_input = 'q';
-                }
-            }
-
+            init_sp_facedetect(fb_mapped, temp_cv_image);
             break;
 
         case 'y' :
             //Gray Scaling
-            textlcd_write(keyboard_input, 0,0);
+            textlcd_write(user_input, 0,0);
             printf("y pressed\n");
             printf("Gray scaling start\n");
 
@@ -272,7 +292,7 @@ int main(void) {
             break;
 
         default:
-            printf("%c\n", keyboard_input);
+            printf("%c\n", user_input);
             printf("undefined key pressed \n");
             break;
 
@@ -288,6 +308,9 @@ int main(void) {
 
   /* munmap(fb_mapped, mem_size); */
   /* close(fb_fd); */
+  close_gpio();
+  close_keypad();
+  close_dipsw();
   close_keyboard();
   close_camera();
   close_LCD();
