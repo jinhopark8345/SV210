@@ -229,8 +229,14 @@ void init_stickerphoto(){
   while (user_input != ESC) {//ESC
     segment_write(&(col.rgbcol));
 
+
+
     keypad_input = read_keypad();
-    printf("keypad value: %c\n", keypad_input);
+    if(keypad_input != -1){
+        printf("keypad value: %c\n", keypad_input);
+        keypad_input = 0;
+    }
+
 
     if(kbhit()){
         /* user_input = read_keypad(); */
