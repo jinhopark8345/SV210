@@ -67,3 +67,8 @@ recursive inclusions; for example, a case where “file1.h” includes
     - S : load saved image and start editing
 ## implement modularized facedetection 
 ## implement modularized grayscaling 
+
+# 2020.12.01~03, Jinho
+# modularize gpio button
+# modularize keypad 
+# make keypad non blocking
