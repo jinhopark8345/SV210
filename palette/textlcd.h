@@ -1,11 +1,5 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
+#ifndef TEXTLCD_H
+#define TEXTLCD_H
 
 #define TEXTLCD_BASE            0xbc
 #define TEXTLCD_COMMAND_SET     _IOW(TEXTLCD_BASE,0,int)
@@ -37,3 +31,5 @@ struct strcommand_varible {
 void init_textlcd();
 void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_color);
 void close_textlcd();
+
+#endif
