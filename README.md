@@ -72,3 +72,40 @@ recursive inclusions; for example, a case where “file1.h” includes
 # modularize gpio button
 # modularize keypad 
 # make keypad non blocking
+
+# 2020.12.08, SeungHun
+add segment.ko dotmatrix.ko gpiobutton.ko keypad.ko camera.ko textlcd.ko dipsw.ko
+
+
+edited 
+
+## stickerphoto.c
+
+unsigned short rgbcol; ---> unsigned int rgbcol;
+
+changed camera load, save function key(S--->l, s--->gpio interrupt)
+
+#define DIPSW_ON 512--->sw1이 모두 켜지면 동작
+
+dip_read()--->for stickerphoto activation on/off
+
+vkey check part ---> 
+1. DIPSW_ON : 모든 동작을 받는다.
+2. ESC입력 : 종료
+3. DIPSW OFF : user_input에 'x'입력, LCD에 SET DIPSW 255출력
+
+## facedetect.c
+
+fb_display function added
+
+added fb_display function to detect_and_draw_gray function
+(출력이 되지않았던 이유는 이미지 처리된 결과가 LCD_print에서 fb_mapped를 가지고 출력을 하는데
+detect_and_draw_gray에서 fb_mapped에 gray scaled된 이미지를 저장하지 않았음)  
+
+## gpio.c
+
+gpio_button variable move to gpio.h
+
+## dipsw.c
+
+added dipsw_read dip_init
