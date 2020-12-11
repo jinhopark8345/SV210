@@ -109,3 +109,42 @@ gpio_button variable move to gpio.h
 ## dipsw.c
 
 added dipsw_read dip_init
+
+# 2020.12.11 seunghun
+keypad동작을 다음과 같이 활성화
+##keypad
+1. keypad의 keypad.c의
+#define TIMER_INTERVAL 5--->50으로 수정(아마도 읽어들이는 타이밍을 수정하는 변수인듯)
+
+2. palette의 keypad.c의 
+......
+    for (i = 0; i < 4; i++) {
+    /* for (i = 0; i < 64; i++) { */
+        // event type : KEY
+        // event value : 0(pressed)
+        if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
+            printf("\n Button key : %d, %d\n", event_buf[i].code, i);
+            rtv_input = event_buf[i].code;
+            rtv_input = translate_keypad(rtv_input);
+            event_buf[i].value = 1;
+//value가 왜인지는 모르겠지만 1이 입력되지 않는듯함
+//value를 강제로 1로 써줘서 if문을 돌지않게만듦
+            Ok_flag = 1; 
+            if (event_buf[i].code == 26) {
+                printf("\napplication : Exit Program!! (key = %d)\n", event_buf[i].code);
+                /* quit = 0; */
+            }
+        }
+    }
+......
+
+##camera
+camera나 영상처리 중 종료할 때의 key를 16번(ESC, 메뉴 선택모드에서는 stickerphoto종료)로 통일
+camera모드의 load모드는 keypad의 13번으로 변경
+
+##Load image
+.bmp 가아니면 load가 안되는 문제가 있음
+그림판으로 그린 image도 load할 수 있게하려면 cvsetdata함수를 써야한다?
+간혹 camera기능 동작시 load keypad입력후 입력이 여러개 받아들여져 카메라가 종료되어버리는 문제가 있다.
+tmp_cv_img로 load하지 않고 .bmp파일을 load하는 것을 권장
+
