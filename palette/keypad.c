@@ -1,3 +1,4 @@
+
 #include <fcntl.h>
 #include <linux/input.h>
 #include <stdio.h>
@@ -9,8 +10,14 @@
 #include <unistd.h>
 
 #include "keypad.h"
+#include "touchlcd.h"
 
 #define EVENT_BUF_NUM 64
+
+
+int Ok_flag = 0;
+int time_interval = 500000;
+struct timeval lasttv;
 
 void init_keypad(){
     keypad_fd = -1;
@@ -32,12 +39,47 @@ void close_keypad(){
     return;
 }
 
+int is_newInput(struct timeval newtv){
+    int secDiff;
+    int usecDiff;
+    int msecDiff;
+
+    secDiff = newtv.tv_sec - lasttv.tv_sec;
+    if (newtv.tv_usec >= lasttv.tv_usec){
+        usecDiff = newtv.tv_usec - lasttv.tv_usec;
+    }{
+        usecDiff = lasttv.tv_usec - newtv.tv_usec;
+    }
+
+    msecDiff = usecDiff / 1000 + secDiff * 1000;
+
+    printf("msecDiff : %d\n" , msecDiff);
+    if (msecDiff < 700){
+        printf("msecDiff : %d\n" , msecDiff);
+
+        // update last time interval
+        lasttv = newtv;
+
+        return 1;
+    }
+
+    /* if(secDiff <= 1 || secDiff > -1 ){ */
+    /*     return true; */
+    /* } */
+
+
+
+    return -1;
+}
+
 unsigned short read_keypad(){
     int i, quit = 1;
     size_t read_bytes; // 몇 bytes read 했느냐
     int rtv_input = -1;
     struct input_event event_buf[EVENT_BUF_NUM]; // 몇개의 event 까지 한꺼번에 읽느냐
-
+    struct timeval tv;
+    struct timeval newtv;
+    int newInput = -1;
     /* printf("no problem 1\n"); */
     // event 발생을 EVENT_BUF_NUM 만큼 읽어들인다.
     read_bytes = read(keypad_fd, event_buf, (sizeof(struct input_event) * EVENT_BUF_NUM));
@@ -50,40 +92,35 @@ unsigned short read_keypad(){
     /* printf("no problem 3\n"); */
     /* printf("for loop range: %d\n", (read_bytes / sizeof(struct input_event))); */
 
-    // 4 works,
-    for (i = 0; i < 4; i++) {
-    /* for (i = 0; i < 64; i++) { */
-        // event type : KEY
-        // event value : 0(pressed)
-        if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
-            printf("\n Button key : %d\n", event_buf[i].code);
-            rtv_input = event_buf[i].code;
-
-            if (event_buf[i].code == 26) {
-                printf("\napplication : Exit Program!! (key = %d)\n", event_buf[i].code);
-                /* quit = 0; */
-            }
-        }
-    }
-    /* for (i = 0; i < (read_bytes / sizeof(struct input_event)); i++) { */
-    /*     // event type : KEY */
-    /*     // event value : 0(pressed) */
+    /* for (i = 0; i< 4;i++){ */
+    /*     // event_buf[i].value == 1 : keypress */
     /*     if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) { */
-    /*         printf("\n Button key : %d\n", event_buf[i].code); */
-    /*         rtv_input = event_buf[i].code; */
 
-    /*         if (event_buf[i].code == 26) { */
-    /*             printf("\napplication : Exit Program!! (key = %d)\n", event_buf[i].code); */
-    /*             /\* quit = 0; *\/ */
-    /*         } */
+    /*         tv = event_buf[i].time; */
+    /*         gettimeofday(&tv, NULL); */
+    /*         printf("event_buf[%d].type == %d, event_buf[%d].value == %d, event_buf[%d].code == %d, time: %d.%d \n", i, event_buf[i].type, i, event_buf[i].value, i, event_buf[i].code, tv.tv_sec, tv.tv_usec); */
+    /*         /\* printf("event_buf[%d].time == %d\n", i, tv.tv_usec ); *\/ */
     /*     } */
     /* } */
 
-    /* if(rtv_input == 0){ */
+    // 4 works,
+    Ok_flag = 0;//for iteration in stickerphoto.c
+    /* for (i = 0; i < EVENT_BUF_NUM; i++) { */
+    for (i = 0; i < 4; i++) {
+        if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
+            gettimeofday(&newtv, NULL);
+            if (is_newInput(newtv) > 0){
+                printf("\n Button key : %d, %d\n", event_buf[i].code, i);
+                rtv_input = event_buf[i].code;
+                rtv_input = translate_keypad(rtv_input);
+                event_buf[i].value = 1;
+                Ok_flag = 1;
+            }
 
-    /* } */
+        }
+    }
+    printf("\n");
 
-    rtv_input = translate_keypad(rtv_input);
 
     return rtv_input;
 }
@@ -130,7 +167,11 @@ unsigned short translate_keypad(int keypad_input){
     case 11:
         user_input = 'y';
         break;
-
+    case 13:
+        user_input = 'l';
+        break;
+    case 16://for ESC
+        user_input =  16;
     default:
         printf("%c\n", user_input);
         printf("undefined keypad pressed \n");

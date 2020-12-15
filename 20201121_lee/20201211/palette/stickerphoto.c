@@ -138,32 +138,7 @@ void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* fac
         // display changed csframe values
         LCD_print(fb_mapped);
 
-       /* if(kbhit()){
-            user_input = readch();
-        }*/
-/*
-        if(user_input == 's'){
-            RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
 
-            // save image as cv format
-            cvSaveImage(face_file, temp_cv_image);
-            printf("s pressed, save image, saved file name: %s\n", face_file);
-
-            // go back to original state
-            user_input = 'c';
-        }
-
-        if(gpio_button == 1){//gpio_button for save function
-            RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
-
-            // save image as cv format
-            cvSaveImage(face_file, temp_cv_image);
-            printf("s pressed, save image, saved file name: %s\n", face_file);
-            user_input = 'c';
-            gpio_button = 0;
-        }
-*/
-        
         if(user_input == 'l'){
             printf("l pressed, start editing, use last saved image\n");
             // start editing with the photo the user just took(last photo for now)
@@ -294,11 +269,8 @@ void init_stickerphoto(){
   char* face_file = "face_image.bmp";
   char* save_file = "save_image.bmp";
   char* background_image = "background.bmp";
- // char* background_image = "save_image.jpg";
-//do not use .jpg!!!
 
   IplImage *temp_cv_image = NULL;
-  //IplImage *load_image = cvCreateImage(cvSize(LCD_WIDTH, LCD_HEIGHT),IPL_DEPTH_8U,3);;
   IplImage *load_image = NULL;
   
 

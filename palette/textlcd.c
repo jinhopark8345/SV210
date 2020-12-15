@@ -1,4 +1,5 @@
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,17 +16,17 @@ struct strcommand_varible strcommand;
 
 
 void init_textlcd(){
-        strcommand.rows = 0;            
-        strcommand.nfonts = 0;          
-        strcommand.display_enable = 1;          
-        strcommand.cursor_enable = 0;           
-        strcommand.nblink = 0;          
+        strcommand.rows = 0;
+        strcommand.nfonts = 0;
+        strcommand.display_enable = 1;
+        strcommand.cursor_enable = 0;
+        strcommand.nblink = 0;
         strcommand.set_screen = 0;
-        strcommand.set_rightshit = 1;           
+        strcommand.set_rightshit = 1;
         strcommand.increase = 1;
-        strcommand.nshift = 0;          
-        strcommand.pos = 10;            
-        strcommand.command = 1;         
+        strcommand.nshift = 0;
+        strcommand.pos = 10;
+        strcommand.command = 1;
         strcommand.strlength = 16;
 	text_dev = open("/dev/textlcd", O_WRONLY|O_NDELAY );
 	if(text_dev == -1){
@@ -37,8 +38,8 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
     char brush[16]={' ',};
 	int i =0, j= 0;
 	unsigned short tmp_red,tmp_green,tmp_blue;
-	switch(ch){
-	case 'w':	
+    switch(ch){
+    case 'w':
         ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
 		write(text_dev,"WHITE           ",16);
 		strcommand.pos = 40;
@@ -80,7 +81,7 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
 
         break;
-	case 'g':       
+	case 'g':
         ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
         write(text_dev,"Green           ",16);
         strcommand.pos = 40;
@@ -96,7 +97,7 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
         write(text_dev,brush,16);
         strcommand.pos = 0;
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		
+
 		break;
     case 'e':
         ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
@@ -127,7 +128,7 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
 		sprintf(brush,"      %d",brush_size);
 		for(i = 0 ;brush[i] != '\0';i++){
-				
+
 		}
 		for(j = i;j<16;j++){
 			brush[j] = ' ';
@@ -136,20 +137,27 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
         strcommand.pos = 0;
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
 		break;
-	case 'f':
+    case 'f':
         ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
         write(text_dev,"FACE DETECT      ",16);
         strcommand.pos = 40;
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
 		break;
 
-	case 'y':
+    case 'y':
         ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
         write(text_dev,"GRAY SCALE      ",16);
         strcommand.pos = 40;
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		break;	
-	default:
+		break;
+
+    case 'x':
+        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+        write(text_dev,"SET DIPSW 255   ",16);
+        strcommand.pos = 40;
+        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+                break;
+    default:
 		break;
 	}
 }

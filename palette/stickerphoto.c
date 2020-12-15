@@ -26,9 +26,12 @@
 
 
 #define KEYBOARD_WAITING 0
-#define ESC 27
+#define ESC 16 //changed 27 ---> 16(16th keypad sw)
+#define DIPSW_ON 255
 
 unsigned short user_input=KEYBOARD_WAITING;
+int keypad_count=0;
+
 typedef struct set_color{
 	unsigned short rgbcol;
 	unsigned short red;
@@ -91,6 +94,28 @@ unsigned short get_color(unsigned short brush_color){
     return brush_color;
 }
 
+void save_image(IplImage* temp_cv_image, char* face_file){
+    if(gpio_button == 1){//gpio_button for save function
+        RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
+     // save image as cv format
+        cvSaveImage(face_file, temp_cv_image);
+        printf("sw18 pressed, save image, saved file name: %s\n", face_file);
+        user_input = 'c';
+        gpio_button = 0;
+    }
+
+}
+
+void save_image_test(IplImage* temp_cv_image, char* face_file){
+    if(gpio_button == 1){//gpio_button for save function
+        RGB2cvIMG(temp_cv_image, cis_rgb, 800, 480);
+     // save image as cv format
+        cvSaveImage(face_file, temp_cv_image);
+        printf("sw18 pressed, save image, saved file name: %s\n", face_file);
+        gpio_button = 0;
+    }
+
+}
 
 void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* face_file){
 
@@ -147,6 +172,56 @@ void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* fac
 
 }
 
+
+void init_sp_gray_scaled(unsigned char *fb_mapped, IplImage* temp_cv_image, char * face_file){
+    textlcd_write(user_input, 0,0);
+    printf("y pressed\n");
+    printf("Gray scaling start\n");
+
+
+        // not sure if this is working
+        //this function is also used to make gray scaled video
+    while(user_input != ESC){
+       user_input = read_keypad();
+      /*
+       //if(kbhit()){
+       //    user_input = readch();
+       //}
+       read_camera2rgb();
+       RGB2cvIMG(temp_cv_image, cis_rgb, 320, 240);
+       //change_palette_image(cis_rgb);
+       if(temp_cv_image){
+            detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
+            change_palette_image(cis_rgb);
+            LCD_print(fb_mapped);
+             //fb_display(fb_mapped, cis_rgb, 435, 120);
+       }
+     */
+
+        if(user_input == 'l'){
+            printf("l pressed, start editing, use last saved image\n");
+            // start editing with the photo the user just took(last photo for n$
+            detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
+
+            // from cvImg format to rgb format for displaying, currently since $
+            //cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_I$
+
+            // save face_file rgb value to csframe for editing purpose
+            change_palette_image(cis_rgb);
+
+            // to show the user that saved image has been loaded
+            LCD_print(fb_mapped);
+
+            // go back to original state
+            user_input = 'c';
+            break;
+        }
+
+        save_image(temp_cv_image, face_file);
+
+    }
+    user_input = 0;
+}
 void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
 
     /* facedetect variables */
@@ -202,11 +277,17 @@ void init_stickerphoto(){
   unsigned short segment_flag =0;
   unsigned short tmp_red=0, tmp_blue=0, tmp_green=0;
 
-  IplImage *temp_cv_image = NULL;
-  char* face_file = "face_image.jpg";
+  char* face_file = "face_image.bmp";
+  char* save_file = "save_image.bmp";
   char* background_image = "background.bmp";
+
+  IplImage *temp_cv_image = NULL;
+  IplImage *load_image = NULL;
+
+
   unsigned char *fb_mapped;
   unsigned short keypad_input = -1;
+  unsigned short keypad_input_tmp = 0;
   int i;
 
   init_gpio();
@@ -223,30 +304,42 @@ void init_stickerphoto(){
 
   fb_mapped = lcdvar.fb_mapped;
   temp_cv_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
-
+  IplImage *save_img = cvCreateImageHeader(cvSize(LCD_WIDTH, LCD_HEIGHT),IPL_DEPTH_8U,3);
 
 
   while (user_input != ESC) {//ESC
+
     segment_write(&(col.rgbcol));
 
 
+    //user_input = read_keypad();
+    //keypad_input = read_keypad();
+    //if(keypad_input != -1){
+    //    printf("keypad value: %c\n", keypad_input);
+    //    keypad_input = 0;
+   // }
+    dip_read();
 
-    keypad_input = read_keypad();
-    if(keypad_input != -1){
-        printf("keypad value: %c\n", keypad_input);
-        keypad_input = 0;
-    }
+    //if(kbhit()){
+    user_input_tmp = read_keypad();
+    if(Ok_flag == 1){
+        //user_input_tmp = readch();
+        if(vkey[1] == DIPSW_ON){
+            user_input = user_input_tmp;
+        }else if(user_input_tmp == ESC){
+            user_input = ESC;
+        }else{
+            user_input = 'x';
+        }
 
 
-    if(kbhit()){
-        /* user_input = read_keypad(); */
-        user_input = readch();
 
         switch(user_input) {
         case ESC:
             printf("ESC pressed \n");
             printf("exit the program\n");
-	    case 'w':
+	    break;
+        case 'w':
             brush_color = get_color(user_input);
             textlcd_write(user_input, 0, brush_color);
             break;
@@ -254,11 +347,11 @@ void init_stickerphoto(){
             brush_color = get_color(user_input);
             textlcd_write(user_input, 0, brush_color);
             break;
-        case 'b':
+        case 'g':
             brush_color = get_color(user_input);
             textlcd_write(user_input, 0,brush_color);
             break;
-        case 'g':
+        case 'b':
             brush_color = get_color(user_input);
             textlcd_write(user_input, 0, brush_color);
             break;
@@ -272,7 +365,7 @@ void init_stickerphoto(){
             printf("increase brush size, brush size: %d\n",brush_size);
             textlcd_write(user_input, brush_size,0);
             break;
-        case '_':
+        case '-':
             printf("- pressed \n");
             brush_size -= BRUSH_STEP;
             printf("reduce brush size, brush size: %d\n", brush_size);
@@ -295,16 +388,27 @@ void init_stickerphoto(){
 
         case 'y' :
             //Gray Scaling
-            textlcd_write(user_input, 0,0);
-            printf("y pressed\n");
-            printf("Gray scaling start\n");
-
-            // not sure if this is working
-            for(i = 0; i<10;i++){
-                //this function is also used to make gray scaled video
-                detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
+            //init_sp_gray_scaled(fb_mapped, temp_cv_image, face_file);
+            init_sp_gray_scaled(fb_mapped, temp_cv_image, face_file);
+            break;
+        case 'l'://load function does not work
+          //  load_image = cvLoadImage(face_file, CV_LOAD_IMAGE_COLOR);//for face_file load
+            load_image = cvLoadImage(save_file,CV_LOAD_IMAGE_COLOR);
+            if(load_image == NULL){
+                printf("\nload image error!");
+                return;
             }
+            //cvIMG2RGB565(load_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);// for face_file load
+            cvIMG2RGB565(load_image, cis_rgb, LCD_WIDTH, LCD_HEIGHT);
+            // save face_file rgb value to csframe for editing purpose
+            change_palette_image(cis_rgb);
 
+            // to show the user that saved image has been loaded
+            LCD_print(fb_mapped);
+
+            break;
+        case 'x' :
+            textlcd_write(user_input, 0,0);
             break;
 
         default:
@@ -313,7 +417,10 @@ void init_stickerphoto(){
             break;
 
         }
+
     }
+    //cvSetData(save_img, csframe , save_img->widthStep);
+    //save_image_test(save_img, "./save_image.bmp");
 
 
     if (GetTouch() != -1) {

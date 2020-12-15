@@ -2,6 +2,7 @@
 #define KEYPAD_H
 
 int keypad_fd;
+int Ok_flag;
 
 void init_keypad();
 void close_keypad();

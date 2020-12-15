@@ -394,8 +394,7 @@ void init_stickerphoto(){
   close_textlcd();
   close_dotmatrix();
   close_segment();
-  close_facedetect();
-}
+  close_facedetect();}
 
 int main(void) {
     init_stickerphoto();

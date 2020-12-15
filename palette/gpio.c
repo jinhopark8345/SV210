@@ -10,7 +10,6 @@
 #include "gpio.h"
 
 static int gpio_dev;
-unsigned short gpio_button = 0;
 
 int init_gpio(){
 
@@ -19,7 +18,6 @@ int init_gpio(){
     signal(SIGIO, read_gpio);
 	gpio_dev = open("/dev/gpiobutton",O_RDWR);
 	if(gpio_dev < 0) {
-		// 打开文件失败时 结束
 		printf( "gpio device open ERROR!\n");
 		return -1;
 	}
