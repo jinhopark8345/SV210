@@ -47,14 +47,14 @@ int is_newInput(struct timeval newtv){
     secDiff = newtv.tv_sec - lasttv.tv_sec;
     if (newtv.tv_usec >= lasttv.tv_usec){
         usecDiff = newtv.tv_usec - lasttv.tv_usec;
-    }{
+    }else {
         usecDiff = lasttv.tv_usec - newtv.tv_usec;
     }
 
     msecDiff = usecDiff / 1000 + secDiff * 1000;
 
-    printf("msecDiff : %d\n" , msecDiff);
-    if (msecDiff < 700){
+    /* printf("msecDiff : %d\n" , msecDiff); */
+    if (msecDiff > 2000){
         printf("msecDiff : %d\n" , msecDiff);
 
         // update last time interval
@@ -62,11 +62,6 @@ int is_newInput(struct timeval newtv){
 
         return 1;
     }
-
-    /* if(secDiff <= 1 || secDiff > -1 ){ */
-    /*     return true; */
-    /* } */
-
 
 
     return -1;
@@ -103,13 +98,20 @@ unsigned short read_keypad(){
     /*     } */
     /* } */
 
+
     // 4 works,
     Ok_flag = 0;//for iteration in stickerphoto.c
     /* for (i = 0; i < EVENT_BUF_NUM; i++) { */
+
     for (i = 0; i < 4; i++) {
         if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
+
+            /* gettimeofday(&newtv, NULL); */
+
             gettimeofday(&newtv, NULL);
-            if (is_newInput(newtv) > 0){
+            newInput = is_newInput(newtv);
+
+            if (newInput == 1){
                 printf("\n Button key : %d, %d\n", event_buf[i].code, i);
                 rtv_input = event_buf[i].code;
                 rtv_input = translate_keypad(rtv_input);
