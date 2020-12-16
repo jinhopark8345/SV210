@@ -14,11 +14,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "imagepr.h"
 #include "touchlcd.h"
 
-// LCD 화면 프레임 저장 배열
-unsigned short frame[384000];
-unsigned short csframe[384000];
 /* unsigned short backframe[384000]; */
 // 터치 받을 때 시간 넘어가면 통과할 때 사용
 int poll_state;
@@ -180,7 +178,7 @@ void LCD_print(unsigned char *fb_mapped){
 }
 
 
-struct lcd_variable init_palette(char* background, char* face_file){
+struct lcd_variable init_palette(char* background){
     brush_size = 10;
     int screen_width;
     int screen_height;
@@ -189,7 +187,6 @@ struct lcd_variable init_palette(char* background, char* face_file){
     /* int fb_fd; */
     struct fb_var_screeninfo fbvar;
     struct fb_fix_screeninfo fbfix;
-    /* unsigned char *fb_mapped; */
     /* int mem_size; */
     unsigned short *ptr;
     int coor_y, coor_x;
@@ -251,7 +248,7 @@ struct lcd_variable init_palette(char* background, char* face_file){
     // setting the default frame: make the edit area white
     for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
         ystart = (screen_width * PALETTE_START_Y + PALETTE_START_X) +(screen_width * coor_y);
-        ptr = (unsigned short *)lcdvar.fb_mapped + ystart;
+        /* ptr = (unsigned short *)lcdvar.fb_mapped + ystart; */
         for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++){
             frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR;
         }
@@ -334,20 +331,40 @@ void setFrame(int x, int y, unsigned short brush_color, int radius) {
 void change_palette_image(unsigned short *rgb){
 	int coor_x, coor_y;
 	/* int screen_width; */
-	unsigned short *ptr;
     int ystart;
     for (coor_y = 0; coor_y < PALETTE_IMAGE_HEIGHT; coor_y++) {
         ystart = (LCD_WIDTH * PALETTE_IMAGE_START_Y + PALETTE_IMAGE_START_X) +(LCD_WIDTH * coor_y);
-        ptr = (unsigned short *)lcdvar.fb_mapped + ystart;
         for (coor_x = 0; coor_x < PALETTE_IMAGE_WIDTH; coor_x++){
             /* frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR; */
             frame[coor_x + ystart] = rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH];
             csframe[coor_x + ystart] = rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH];
         }
     }
+    return;
+}
+
+void load_img2LCD(IplImage *load_img){
+	int coor_x, coor_y;
+	unsigned char r,g,b;
+    unsigned short rgb;
+    for (coor_y = 0; coor_y <LCD_HEIGHT; coor_y++) {
+        for (coor_x = 0; coor_x < LCD_WIDTH; coor_x++){
+
+            // convert cvImg to RGB
+			b = (load_img->imageData[(coor_y*load_img->widthStep)+coor_x*3]);
+			g = (load_img->imageData[(coor_y*load_img->widthStep)+coor_x*3+1]);
+			r = (load_img->imageData[(coor_y*load_img->widthStep)+coor_x*3+2]);
+            rgb = (unsigned short)RGB565(r,g,b);
+
+            frame[coor_x + coor_y*LCD_WIDTH] = rgb;
+            csframe[coor_x + coor_y*LCD_WIDTH] = rgb;
+        }
+    }
 
     return;
 }
+
+
 
 void update_cis_rgb(unsigned short *cis_rgb){
 	int coor_x, coor_y;

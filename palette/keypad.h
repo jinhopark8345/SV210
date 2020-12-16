@@ -33,7 +33,7 @@
 
 #define SP_FACEDETECTION 'f'
 #define SP_GRAYSCALE 'y'
-#define SP_LOAD_IMAGE 'l'
+#define SP_LOAD_IMAGE 'L'
 
 #define SP_STOP 'S'
 #define SP_EXIT 'q'

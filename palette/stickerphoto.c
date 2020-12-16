@@ -37,7 +37,7 @@ typedef struct set_color{
 	unsigned short red;
 	unsigned short blue;
 	unsigned short green;	
-};
+}set_color;
 struct set_color col={30, 30, 30, 30};
 
 
@@ -92,20 +92,9 @@ unsigned short get_color(unsigned short brush_color){
     return brush_color;
 }
 
-void save_image(IplImage* temp_cv_image, char* face_file){
-    if(gpio_button == 1){//gpio_button for save function
-        RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
-        // save image as cv format
-        cvSaveImage(face_file, temp_cv_image);
-        printf("sw18 pressed, save image, saved file name: %s\n", face_file);
-        user_input = SP_CAMERA;
-        gpio_button = 0;
-    }
-
-}
 
 
-void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* face_file){
+void init_sp_camera(unsigned char *fb_mapped){
 
     unsigned short user_input_tmp = 0;
     user_input = SP_CAMERA;
@@ -141,21 +130,15 @@ void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* fac
 }
 
 
-void init_sp_grayscale(unsigned char *fb_mapped, IplImage* temp_cv_image, char * face_file){
+void init_sp_grayscale(unsigned char *fb_mapped){
     textlcd_write(user_input, 0,0);
     printf("y pressed: Gray scaling start\n");
-
-
 
     // update cis_rgb
     update_cis_rgb(cis_rgb);
 
     // start editing with the photo the user just took(last photo for n$
     init_grayscale(cis_rgb);
-
-    // from cvImg format to rgb format for displaying, currently since $
-    //cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_I$
-
 
     // change csframe value -> show camera image on touchlcd
     change_palette_image(cis_rgb);
@@ -166,15 +149,15 @@ void init_sp_grayscale(unsigned char *fb_mapped, IplImage* temp_cv_image, char *
     // go back to original state
     user_input = SP_EDITMODE;
 
-    /* save_image(temp_cv_image, face_file); */
 
     return;
 }
-void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
+void init_sp_facedetect(unsigned char *fb_mapped){
 
     /* facedetect variables */
     int num_detected_face = 0;
     unsigned short user_input_tmp = 0;
+    IplImage *temp_cv_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
     // start face detecting and after the app detects any face, start editing
     textlcd_write(user_input, 0,0);
@@ -213,6 +196,8 @@ void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
             user_input = SP_STOP;
         }
     }
+	cvReleaseImage(&temp_cv_image);
+
 }
 
 
@@ -230,13 +215,9 @@ void init_stickerphoto(){
   unsigned short user_input_tmp = 0;
   unsigned short brush_color = green;
   unsigned short segment_flag =0;
-  unsigned short tmp_red=0, tmp_blue=0, tmp_green=0;
 
-  char* face_file = "face_image.bmp";
-  char* save_file = "save_image.bmp";
   char* background_image = "background.bmp";
 
-  IplImage *temp_cv_image = NULL;
   IplImage *load_image = NULL;
 
   unsigned char *fb_mapped;
@@ -254,11 +235,9 @@ void init_stickerphoto(){
   init_textlcd();
   init_segment();
   init_dotmatrix();
-  init_palette(background_image, face_file);   // prepare touchlcd
+  init_palette(background_image);   // prepare touchlcd
 
   fb_mapped = lcdvar.fb_mapped;
-  temp_cv_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
-  IplImage *save_img = cvCreateImageHeader(cvSize(LCD_WIDTH, LCD_HEIGHT),IPL_DEPTH_8U,3);
 
 
   while (user_input != SP_EXIT) { // KEYPAD44
@@ -309,32 +288,34 @@ void init_stickerphoto(){
         /*     break; */
 
         case SP_CAMERA:
-            printf("c pressed, plain camera starts, save image with 's' \n");
+            printf("c pressed, plain camera starts, save image with gpio button \n");
             printf("quit: press the same button(c) again \n");
-            init_sp_camera(fb_mapped, temp_cv_image, face_file);
+            init_sp_camera(fb_mapped);
             break;
 
         case SP_FACEDETECTION:
-            init_sp_facedetect(fb_mapped, temp_cv_image);
+            init_sp_facedetect(fb_mapped);
             break;
 
         case SP_GRAYSCALE:
-            //Gray Scaling
-            //init_sp_gray_scaled(fb_mapped, temp_cv_image, face_file);
-            init_sp_grayscale(fb_mapped, temp_cv_image, face_file);
+            init_sp_grayscale(fb_mapped);
             break;
-        case SP_LOAD_IMAGE://load function does not work
-          //  load_image = cvLoadImage(face_file, CV_LOAD_IMAGE_COLOR);//for face_file load
-            load_image = cvLoadImage(save_file,CV_LOAD_IMAGE_COLOR);
+
+        case SP_LOAD_IMAGE:
+            load_image = cvLoadImage(SAVE_FILE ,CV_LOAD_IMAGE_COLOR);
             if(load_image == NULL){
                 printf("\nload image error!");
                 return;
             }
-            //cvIMG2RGB565(load_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);// for face_file load
-            cvIMG2RGB565(load_image, cis_rgb, LCD_WIDTH, LCD_HEIGHT);
-            // save face_file rgb value to csframe for editing purpose
-            change_palette_image(cis_rgb);
 
+            //cvIMG2RGB565(load_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);// for face_file load
+            load_img2LCD(load_image);
+
+            // load_image size is much bigger than cis_rgb, that's why it doesn't work
+            /* cvIMG2RGB565(load_image, cis_rgb, LCD_WIDTH, LCD_HEIGHT); */
+
+            // save image file rgb value to csframe for editing purpose
+            /* change_palette_image(cis_rgb); */
             // to show the user that saved image has been loaded
             LCD_print(fb_mapped);
 
@@ -363,6 +344,7 @@ void init_stickerphoto(){
     }
   }
 
+  cvReleaseImage(&load_image);
   close_gpio();
   close_keypad();
   close_dipsw();

@@ -143,7 +143,6 @@ int mapKeypadInput(int keypad_input){
 
     case KEYPAD31: return SP_FACEDETECTION;
     case KEYPAD32: return SP_GRAYSCALE;
-    case KEYPAD33: return SP_LOAD_IMAGE;
 
         /* case KEYPAD34: return; */
 
@@ -151,6 +150,7 @@ int mapKeypadInput(int keypad_input){
         /* case KEYPAD42: */
         /* case KEYPAD43: */
 
+    case KEYPAD42: return SP_LOAD_IMAGE;
     case KEYPAD43: return SP_STOP;
     case KEYPAD44: return SP_EXIT;
 

@@ -45,6 +45,9 @@ int x_detected_prev, y_detected_prev;
 #define LCD_FINIT 0
 #define LCD_PRINT 2
 
+// LCD 화면 프레임 저장 배열
+unsigned short frame[384000];
+unsigned short csframe[384000];
 
 /* struct lcd_variable lcdvar; */
 struct lcd_variable{
@@ -66,7 +69,7 @@ void change_palette_image(unsigned short *rgb);
 
 // unsigned char LCDinit(char* background);
 // struct lcd_variable LCDinit(char* background);
-struct lcd_variable init_palette(char* background, char* face_file);
+struct lcd_variable init_palette(char* background);
 void setFrame(int x, int y, unsigned short brush_color, int radius);
 
 void close_LCD();

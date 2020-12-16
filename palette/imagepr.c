@@ -19,8 +19,6 @@
 #include "camera.h" // need to use read_camera2rgb function from camera module
 #include "imagepr.h"
 
-#define RGB565(r,g,b)	((((r)>>3)<<11) | (((g)>>2)<<5) | ((b)>>3))
-#define SAVE_FILE_NAME	"face_image.jpg"
 
 static CvMemStorage* storage = 0;
 static CvHaarClassifierCascade* cascade = 0;

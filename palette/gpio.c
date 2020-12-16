@@ -8,6 +8,9 @@
 #include <signal.h>
 
 #include "gpio.h"
+#include "camera.h"
+#include "touchlcd.h"
+#include "imagepr.h"
 
 static int gpio_dev;
 
@@ -15,14 +18,15 @@ int init_gpio(){
 
 	int Oflags;
 
-    signal(SIGIO, read_gpio);
+    signal(SIGIO, save_sp);
 	gpio_dev = open("/dev/gpiobutton",O_RDWR);
 	if(gpio_dev < 0) {
 		printf( "gpio device open ERROR!\n");
 		return -1;
 	}
-    printf("gpio button initialized!\n");
-	printf("Please push the GPIO_0 port!\n");
+
+    /* printf("gpio button initialized!\n"); */
+	/* printf("Please push the GPIO_0 port!\n"); */
 
     fcntl(gpio_dev, F_SETOWN, getpid());
 
@@ -36,9 +40,22 @@ void close_gpio(){
 	close(gpio_dev);
 }
 
-void read_gpio()
-{
-	read(gpio_dev,&gpio_button,2);
-    gpio_button += 1;
-	printf("%d\n",gpio_button);
+
+void save_sp(){
+    IplImage *temp_cv_image = cvCreateImage(cvSize(LCD_WIDTH, LCD_HEIGHT), IPL_DEPTH_8U, 3);
+
+
+	/* read(gpio_dev,&gpio_button,2); */
+    /* gpio_button += 1; */
+	/* printf("%d\n",gpio_button); */
+    printf("gpio button pressed: save image as '%s'\n", SAVE_FILE);
+
+    // save whole lcd
+    RGB2cvIMG(temp_cv_image, csframe, LCD_WIDTH, LCD_HEIGHT);
+
+    // save image as cv format
+    cvSaveImage(SAVE_FILE, temp_cv_image);
+
+	cvReleaseImage(&temp_cv_image);
+    return;
 }
