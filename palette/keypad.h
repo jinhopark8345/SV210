@@ -42,7 +42,7 @@
 #define SP_EDITMODE 1000
 
 int keypad_fd;
-int Ok_flag;
+int newInput_flag;
 
 void init_keypad();
 void close_keypad();

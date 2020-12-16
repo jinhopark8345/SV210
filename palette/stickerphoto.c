@@ -101,7 +101,10 @@ void init_sp_camera(unsigned char *fb_mapped){
     while(user_input == SP_CAMERA){
 
         user_input_tmp = read_keypad();
-        if(Ok_flag == 1){
+        if(newInput_flag == 1){
+            // reset the flag
+            newInput_flag = -1;
+
             if(vkey[1] == DIPSW_ON){
                 user_input = user_input_tmp;
             }else if(user_input_tmp == SP_EXIT){
@@ -168,7 +171,9 @@ void init_sp_facedetect(unsigned char *fb_mapped){
 
         // loop until only if user hasn't pressed 'S' or a face hasn't detected
         user_input_tmp = read_keypad();
-        if(Ok_flag == 1){
+        if(newInput_flag == 1){
+            // reset the flag
+            newInput_flag = -1;
             if(vkey[1] == DIPSW_ON){
                 user_input = user_input_tmp;
             }else if(user_input_tmp == SP_EXIT){
@@ -243,17 +248,22 @@ void init_stickerphoto(){
   while (user_input != SP_EXIT) { // KEYPAD44
 
     segment_write(&(col.rgbcol));
+
     dip_read();
 
     user_input_tmp = read_keypad();
-    if(Ok_flag == 1){
-        if(vkey[1] == DIPSW_ON){
-            user_input = user_input_tmp;
-        }else if(user_input_tmp == SP_EXIT){
-            user_input = SP_EXIT;
-        }else{
-            user_input = SP_UNDEFINED_INPUT;
-        }
+
+    if(newInput_flag == 1){
+        //reset the flag
+        newInput_flag = -1;
+        user_input = user_input_tmp;
+        /* if(KEYPAD_ON > 0){ */
+        /*     user_input = user_input_tmp; */
+        /* }else if(user_input_tmp == SP_EXIT){ */
+        /*     user_input = SP_EXIT; */
+        /* }else{ */
+        /*     user_input = SP_UNDEFINED_INPUT; */
+        /* } */
 
 
 

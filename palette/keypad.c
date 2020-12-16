@@ -11,11 +11,11 @@
 
 #include "keypad.h"
 #include "touchlcd.h"
+#include "dipsw.h"
 
 #define KEYPAD_EVENT_BUF_NUM 64
 #define TIME_INTERVAL_MSEC 1000
 
-int Ok_flag = 0;
 struct timeval lasttv;
 
 void init_keypad(){
@@ -59,7 +59,6 @@ int is_newInput(struct timeval newtv){
         /* printf("sec diff: %d, msec diff: %d, usec diff: %d\n", secDiff, msecDiff, usecDiff); */
         /* printf("msecDiff : %d\n" , msecDiff); */
         /* printf("usec diff: %d\n", usecDiff); */
-
         return 1;
     }
 
@@ -74,7 +73,6 @@ unsigned short read_keypad(){
     struct input_event event_buf[KEYPAD_EVENT_BUF_NUM]; // 몇개의 event 까지 한꺼번에 읽느냐
     struct timeval tv;
     struct timeval newtv;
-    int newInput = -1;
     /* printf("no problem 1\n"); */
     // event 발생을 KEYPAD_EVENT_BUF_NUM 만큼 읽어들인다.
     read_bytes = read(keypad_fd, event_buf, (sizeof(struct input_event) * KEYPAD_EVENT_BUF_NUM));
@@ -84,38 +82,24 @@ unsigned short read_keypad(){
         printf("keypad: read error!!");
         exit(1);
     }
-    /* printf("no problem 3\n"); */
-    /* printf("for loop range: %d\n", (read_bytes / sizeof(struct input_event))); */
-
-    /* for (i = 0; i< 4;i++){ */
-    /*     // event_buf[i].value == 1 : keypress */
-    /*     if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) { */
-
-    /*         tv = event_buf[i].time; */
-    /*         gettimeofday(&tv, NULL); */
-    /*         printf("event_buf[%d].type == %d, event_buf[%d].value == %d, event_buf[%d].code == %d, time: %d.%d \n", i, event_buf[i].type, i, event_buf[i].value, i, event_buf[i].code, tv.tv_sec, tv.tv_usec); */
-    /*         /\* printf("event_buf[%d].time == %d\n", i, tv.tv_usec ); *\/ */
-    /*     } */
-    /* } */
-
-
-    // 4 works,
-    Ok_flag = 0;//for iteration in stickerphoto.c
-    /* for (i = 0; i < KEYPAD_EVENT_BUF_NUM; i++) { */
 
 
     gettimeofday(&newtv, NULL);
-    newInput = is_newInput(newtv);
-    if (newInput == 1){
+    newInput_flag = is_newInput(newtv);
+
+    if (newInput_flag == 1){
+
+        // clear the buffer, so it run on main func
+        if(!(KEYPAD_ON > 0)){
+            newInput_flag = 0;
+        }
+
         /* printf("time : %d.%d\n", newtv.tv_sec, newtv.tv_usec); */
         for (i = 0; i < 4; i++) {
             if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
-                /* gettimeofday(&newtv, NULL); */
-                /* printf("event_buf[%d].code: %d\n",i, event_buf[i].code); */
                 rtv_input = event_buf[i].code;
                 rtv_input = mapKeypadInput(rtv_input);
                 event_buf[i].value = 1;
-                Ok_flag = 1;
 
             }
         }
