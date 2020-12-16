@@ -10,6 +10,7 @@
 
 #include "textlcd.h"
 #include "keypad.h"
+#include "dipsw.h"
 
 
 int text_dev;
@@ -39,128 +40,141 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
     char brush[16]={' ',};
 	int i =0, j= 0;
 	unsigned short tmp_red,tmp_green,tmp_blue;
-    switch(ch){
-    case SP_BRUSH_WHITE:
+
+    if(!(TEXTLCD_ON>0)){ // TEXTLCD off
+        //clear textlcd
         ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-		write(text_dev,"WHITE           ",16);
-		strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-        break;
-    case SP_BRUSH_RED:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"Red             ",16);
+        write(text_dev,"                ",16);
         strcommand.pos = 40;
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		tmp_red = (brush_color>>10)/6;
-        sprintf(brush,"      %d",(brush_color>>10)/6);
-		for(i = 0 ;brush[i] != '\0';i++){
-
-        }
-        for(j = i;j<16;j++){
-            brush[j] = ' ';
-        }
-        write(text_dev,brush,16);
         strcommand.pos = 0;
         ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
 
-		break;
-    case SP_BRUSH_BLUE:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"Blue            ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		tmp_blue = brush_color/6;
-        sprintf(brush,"      %d", tmp_blue);
-        for(i = 0 ;brush[i] != '\0';i++){
+    }else { // TEXTLCD on
+        switch(ch){
+        case SP_BRUSH_WHITE:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"WHITE           ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            break;
+        case SP_BRUSH_RED:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"Red             ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            tmp_red = (brush_color>>10)/6;
+            sprintf(brush,"      %d",(brush_color>>10)/6);
+            for(i = 0 ;brush[i] != '\0';i++){
 
+            }
+            for(j = i;j<16;j++){
+                brush[j] = ' ';
+            }
+            write(text_dev,brush,16);
+            strcommand.pos = 0;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+
+            break;
+        case SP_BRUSH_BLUE:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"Blue            ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            tmp_blue = brush_color/6;
+            sprintf(brush,"      %d", tmp_blue);
+            for(i = 0 ;brush[i] != '\0';i++){
+
+            }
+            for(j = i;j<16;j++){
+                brush[j] = ' ';
+            }
+            write(text_dev,brush,16);
+            strcommand.pos = 0;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+
+            break;
+        case SP_BRUSH_GREEN:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"Green           ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            tmp_green = (brush_color>>5)/6;
+            sprintf(brush,"      %d",tmp_green);
+            for(i = 0 ;brush[i] != '\0';i++){
+
+            }
+            for(j = i;j<16;j++){
+                brush[j] = ' ';
+            }
+            write(text_dev,brush,16);
+            strcommand.pos = 0;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+
+            break;
+        case SP_BRUSH_ERASER:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"Eraser          ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            break;
+        case SP_BRUSH_SIZEUP:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"Brush bigger     ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            sprintf(brush,"      %d",brush_size);
+            for(i = 0 ;brush[i] != '\0';i++){
+
+            }
+            for(j = i;j<16;j++){
+                brush[j] = ' ';
+            }
+            write(text_dev,brush,16);
+            strcommand.pos = 0;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            break;
+        case SP_BRUSH_SIZEDOWN:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"Brush smaller    ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            sprintf(brush,"      %d",brush_size);
+            for(i = 0 ;brush[i] != '\0';i++){
+
+            }
+            for(j = i;j<16;j++){
+                brush[j] = ' ';
+            }
+            write(text_dev,brush,16);
+            strcommand.pos = 0;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            break;
+        case SP_FACEDETECTION:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"FACE DETECT      ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            break;
+
+        case SP_GRAYSCALE:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"GRAY SCALE      ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            break;
+
+        case SP_UNDEFINED_INPUT:
+            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
+            write(text_dev,"SET DIPSW 255   ",16);
+            strcommand.pos = 40;
+            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            break;
+        default:
+            break;
         }
-        for(j = i;j<16;j++){
-            brush[j] = ' ';
-        }
-        write(text_dev,brush,16);
-        strcommand.pos = 0;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+    }
 
-        break;
-	case SP_BRUSH_GREEN:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"Green           ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-   		tmp_green = (brush_color>>5)/6;
-        sprintf(brush,"      %d",tmp_green);
-        for(i = 0 ;brush[i] != '\0';i++){
-
-        }
-        for(j = i;j<16;j++){
-            brush[j] = ' ';
-        }
-        write(text_dev,brush,16);
-        strcommand.pos = 0;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-
-		break;
-    case SP_BRUSH_ERASER:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"Eraser          ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		break;
-    case SP_BRUSH_SIZEUP:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"Brush bigger     ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		sprintf(brush,"      %d",brush_size);
-        for(i = 0 ;brush[i] != '\0';i++){
-
-        }
-        for(j = i;j<16;j++){
-            brush[j] = ' ';
-        }
-		write(text_dev,brush,16);
-        strcommand.pos = 0;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-        break;
-    case SP_BRUSH_SIZEDOWN:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"Brush smaller    ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		sprintf(brush,"      %d",brush_size);
-		for(i = 0 ;brush[i] != '\0';i++){
-
-		}
-		for(j = i;j<16;j++){
-			brush[j] = ' ';
-		}
-        write(text_dev,brush,16);
-        strcommand.pos = 0;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		break;
-    case SP_FACEDETECTION:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"FACE DETECT      ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		break;
-
-    case SP_GRAYSCALE:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"GRAY SCALE      ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-		break;
-
-    case SP_UNDEFINED_INPUT:
-        ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-        write(text_dev,"SET DIPSW 255   ",16);
-        strcommand.pos = 40;
-        ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-        break;
-    default:
-		break;
-	}
 }
 
 void close_textlcd(){
