@@ -7,7 +7,7 @@ CC=/home/jp/Project/sv210/arm-2009q3/bin/arm-linux-gcc-4.4.1
 APP = stickerphoto
 KEYBOARD = keyboard
 TOUCHLCD = touchlcd
-FACEDETECT = facedetect
+IMAGEPR = imagepr
 CAMERA = camera
 TEXTLCD = textlcd
 SEGMENT = segment
@@ -24,7 +24,7 @@ CFLAGS = -DNO_DEBUG -I/home/jp/Project/opencv_arm/include/opencv/ -L/home/jp/Pro
 TOUCH= $(TOUCHLCD).o
 KEYBO= $(KEYBOARD).o
 CAM= $(CAMERA).o
-FACE = $(FACEDETECT).o
+IMPR = $(IMAGEPR).o
 TEXT = $(TEXTLCD).o
 SEG = $(SEGMENT).o
 DOT = $(DOTMATRIX).o
@@ -35,8 +35,8 @@ KEYP = $(KEYPAD).o
 
 all: $(APP)
 
-$(APP):$(GP) $(DIPS) $(KEYP) $(KEYBO) $(DOT) $(CAM) $(SEG) $(TOUCH) $(FACE) $(TEXT) $(OBJS)
+$(APP):$(GP) $(DIPS) $(KEYP) $(KEYBO) $(DOT) $(CAM) $(SEG) $(TOUCH) $(IMPR) $(TEXT) $(OBJS)
 	$(CC)  $(CFLAGS) -o $@ $^
 
 clean:
-	rm -f $(OBJS) $(DIPSW) $(GP) $(KEYP) $(DOT) $(TEXT) $(SEG) $(KEYBO) $(CAM) $(TOUCH) $(FACE) $(APP)
+	rm -f $(OBJS) $(DIPSW) $(GP) $(KEYP) $(DOT) $(TEXT) $(SEG) $(KEYBO) $(CAM) $(TOUCH) $(IMPR) $(APP)

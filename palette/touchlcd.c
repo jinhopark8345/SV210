@@ -345,6 +345,27 @@ void change_palette_image(unsigned short *rgb){
             csframe[coor_x + ystart] = rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH];
         }
     }
+
+    return;
+}
+
+void update_cis_rgb(unsigned short *cis_rgb){
+	int coor_x, coor_y;
+	/* int screen_width; */
+	unsigned short *ptr;
+    int ystart;
+    for (coor_y = 0; coor_y < PALETTE_IMAGE_HEIGHT; coor_y++) {
+        ystart = (LCD_WIDTH * PALETTE_IMAGE_START_Y + PALETTE_IMAGE_START_X) +(LCD_WIDTH * coor_y);
+        ptr = (unsigned short *)lcdvar.fb_mapped + ystart;
+        for (coor_x = 0; coor_x < PALETTE_IMAGE_WIDTH; coor_x++){
+            /* frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR; */
+            /* csframe[coor_x + ystart] = rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH]; */
+            cis_rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH] = csframe[coor_x + ystart];
+        }
+    }
+
+
+    return;
 }
 
 

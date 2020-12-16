@@ -13,10 +13,11 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "stickerphoto.h"
 #include "keyboard.h"
 #include "touchlcd.h"
 #include "camera.h"
-#include "facedetect.h"
+#include "imagepr.h"
 #include "textlcd.h"
 #include "segment.h"
 #include "dotmatrix.h"
@@ -26,7 +27,6 @@
 
 
 #define KEYBOARD_WAITING 0
-#define ESC 16 //changed 27 ---> 16(16th keypad sw)
 #define DIPSW_ON 255
 
 unsigned short user_input=KEYBOARD_WAITING;
@@ -38,18 +38,17 @@ typedef struct set_color{
 	unsigned short blue;
 	unsigned short green;	
 };
-
 struct set_color col={30, 30, 30, 30};
+
 
 unsigned short get_color(unsigned short brush_color){
     unsigned short tmp=0;
-    printf("%c pressed\n", brush_color);
     switch (brush_color) {
-    case 'w': 
+    case SP_BRUSH_WHITE:
         brush_color = 0b1111111111111111;
         printf("brush color: white\n");
         break;
-    case 'r': // red
+    case SP_BRUSH_RED:
         // brush_color = (0b11111 << 11);
         col.red += 6;//0b11111/10  10 steps for 7 segment
         if(col.red>=63){
@@ -60,7 +59,7 @@ unsigned short get_color(unsigned short brush_color){
         brush_color = tmp<<10;
         printf("brush color: red, color level: %d\n", col.rgbcol);
         break;
-    case 'b': // blue
+    case SP_BRUSH_BLUE:
         // brush_color = (0b11111);
         col.blue += 6;//0b111111/10  10 steps for 7 segment
         if(col.blue>=63){
@@ -71,7 +70,7 @@ unsigned short get_color(unsigned short brush_color){
         brush_color = tmp;
         printf("brush color: blue, color level: %d\n ", col.rgbcol);
         break;
-    case 'g': // green
+    case SP_BRUSH_GREEN:
         // brush_color = (0b111111 << 5);
         col.green += 6;//0b111111/10  10 steps for 7 segment
         if(col.green>=63){
@@ -82,7 +81,7 @@ unsigned short get_color(unsigned short brush_color){
         brush_color = tmp<<5;
         printf("brush color: green, color level: %d\n", col.rgbcol);
         break;
-    case 'e': // eraser
+    case SP_BRUSH_ERASER: // eraser
         brush_color = PALETTE_ERASER;
         printf("brush color: eraser\n");
         break;
@@ -96,35 +95,32 @@ unsigned short get_color(unsigned short brush_color){
 void save_image(IplImage* temp_cv_image, char* face_file){
     if(gpio_button == 1){//gpio_button for save function
         RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
-     // save image as cv format
+        // save image as cv format
         cvSaveImage(face_file, temp_cv_image);
         printf("sw18 pressed, save image, saved file name: %s\n", face_file);
-        user_input = 'c';
+        user_input = SP_CAMERA;
         gpio_button = 0;
     }
 
 }
 
-void save_image_test(IplImage* temp_cv_image, char* face_file){
-    if(gpio_button == 1){//gpio_button for save function
-        RGB2cvIMG(temp_cv_image, cis_rgb, 800, 480);
-     // save image as cv format
-        cvSaveImage(face_file, temp_cv_image);
-        printf("sw18 pressed, save image, saved file name: %s\n", face_file);
-        gpio_button = 0;
-    }
-
-}
 
 void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* face_file){
 
-    // it's not necessary to start using app(stickerphoto)
-    // with face-detect, most of the users will want to take
-    // photo as they want and edit the image
-    printf("c pressed, plain camera starts, save image with 's' \n");
-    printf("quit: q \n");
+    unsigned short user_input_tmp = 0;
+    user_input = SP_CAMERA;
+    while(user_input == SP_CAMERA){
 
-    while(user_input != 'q'){
+        user_input_tmp = read_keypad();
+        if(Ok_flag == 1){
+            if(vkey[1] == DIPSW_ON){
+                user_input = user_input_tmp;
+            }else if(user_input_tmp == SP_EXIT){
+                user_input = SP_EXIT;
+            }else{
+                user_input = SP_UNDEFINED_INPUT;
+            }
+        }
 
         // after read_camera2rgb, cis_rgb values changed
         // change csframe value -> show camera image on touchlcd
@@ -134,109 +130,70 @@ void init_sp_camera(unsigned char *fb_mapped, IplImage* temp_cv_image, char* fac
         // display changed csframe values
         LCD_print(fb_mapped);
 
-        if(kbhit()){
-            user_input = readch();
-        }
-
-        if(user_input == 's'){
-            RGB2cvIMG(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
-
-            // save image as cv format
-            cvSaveImage(face_file, temp_cv_image);
-            printf("s pressed, save image, saved file name: %s\n", face_file);
+        if(user_input == SP_STOP){
+            printf("Stop button pressed, start editing, use last saved image\n");
 
             // go back to original state
-            user_input = 'c';
-        }
-
-        if(user_input == 'S'){
-            printf("S pressed, start editing, use last saved image\n");
-
-            // start editing with the photo the user just took(last photo for now)
-
-            // from cvImg format to rgb format for displaying, currently since I am not opening face_file, it can only work with the last captured image
-            cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);
-
-            // save face_file rgb value to csframe for editing purpose
-            change_palette_image(cis_rgb);
-
-            // to show the user that saved image has been loaded
-            LCD_print(fb_mapped);
-
-            // go back to original state
-            user_input = 'c';
+            user_input = SP_EDITMODE;
             break;
         }
     }
-
 }
 
 
-void init_sp_gray_scaled(unsigned char *fb_mapped, IplImage* temp_cv_image, char * face_file){
+void init_sp_grayscale(unsigned char *fb_mapped, IplImage* temp_cv_image, char * face_file){
     textlcd_write(user_input, 0,0);
-    printf("y pressed\n");
-    printf("Gray scaling start\n");
+    printf("y pressed: Gray scaling start\n");
 
 
-        // not sure if this is working
-        //this function is also used to make gray scaled video
-    while(user_input != ESC){
-       user_input = read_keypad();
-      /*
-       //if(kbhit()){
-       //    user_input = readch();
-       //}
-       read_camera2rgb();
-       RGB2cvIMG(temp_cv_image, cis_rgb, 320, 240);
-       //change_palette_image(cis_rgb);
-       if(temp_cv_image){
-            detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
-            change_palette_image(cis_rgb);
-            LCD_print(fb_mapped);
-             //fb_display(fb_mapped, cis_rgb, 435, 120);
-       }
-     */
 
-        if(user_input == 'l'){
-            printf("l pressed, start editing, use last saved image\n");
-            // start editing with the photo the user just took(last photo for n$
-            detect_and_draw_gray(temp_cv_image, fb_mapped, cis_rgb);
+    // update cis_rgb
+    update_cis_rgb(cis_rgb);
 
-            // from cvImg format to rgb format for displaying, currently since $
-            //cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_I$
+    // start editing with the photo the user just took(last photo for n$
+    init_grayscale(cis_rgb);
 
-            // save face_file rgb value to csframe for editing purpose
-            change_palette_image(cis_rgb);
+    // from cvImg format to rgb format for displaying, currently since $
+    //cvIMG2RGB565(temp_cv_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_I$
 
-            // to show the user that saved image has been loaded
-            LCD_print(fb_mapped);
 
-            // go back to original state
-            user_input = 'c';
-            break;
-        }
+    // change csframe value -> show camera image on touchlcd
+    change_palette_image(cis_rgb);
 
-        save_image(temp_cv_image, face_file);
+    // to show the user that saved image has been loaded
+    LCD_print(fb_mapped);
 
-    }
-    user_input = 0;
+    // go back to original state
+    user_input = SP_EDITMODE;
+
+    /* save_image(temp_cv_image, face_file); */
+
+    return;
 }
 void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
 
     /* facedetect variables */
     int num_detected_face = 0;
+    unsigned short user_input_tmp = 0;
 
     // start face detecting and after the app detects any face, start editing
     textlcd_write(user_input, 0,0);
     printf("f pressed: face detection start \n");
     printf("press q to quit\n");
 
-    while(user_input != 'q'){
-        // loop until only if user hasn't pressed 'q' or a face hasn't detected
-        if(kbhit()){
-            user_input = readch();
+    while(user_input != SP_STOP){
+
+        // loop until only if user hasn't pressed 'S' or a face hasn't detected
+        user_input_tmp = read_keypad();
+        if(Ok_flag == 1){
+            if(vkey[1] == DIPSW_ON){
+                user_input = user_input_tmp;
+            }else if(user_input_tmp == SP_EXIT){
+                user_input = SP_EXIT;
+            }else{
+                user_input = SP_UNDEFINED_INPUT;
+            }
         }
-        printf("keyboard input: %c \n", user_input);
 
         // after read_camera2rgb, cis_rgb values changed
         read_camera2rgb();
@@ -253,7 +210,7 @@ void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
         dotmatrix_write(num_detected_face);
 
         if(num_detected_face > 0){
-            user_input = 'q';
+            user_input = SP_STOP;
         }
     }
 }
@@ -282,7 +239,6 @@ void init_stickerphoto(){
   IplImage *temp_cv_image = NULL;
   IplImage *load_image = NULL;
 
-
   unsigned char *fb_mapped;
   unsigned short keypad_input = -1;
   unsigned short keypad_input_tmp = 0;
@@ -305,91 +261,69 @@ void init_stickerphoto(){
   IplImage *save_img = cvCreateImageHeader(cvSize(LCD_WIDTH, LCD_HEIGHT),IPL_DEPTH_8U,3);
 
 
-  while (user_input != ESC) {//ESC
+  while (user_input != SP_EXIT) { // KEYPAD44
 
     segment_write(&(col.rgbcol));
-
-
-    //user_input = read_keypad();
-    //keypad_input = read_keypad();
-    //if(keypad_input != -1){
-    //    printf("keypad value: %c\n", keypad_input);
-    //    keypad_input = 0;
-   // }
     dip_read();
 
-    //if(kbhit()){
     user_input_tmp = read_keypad();
     if(Ok_flag == 1){
-        //user_input_tmp = readch();
         if(vkey[1] == DIPSW_ON){
             user_input = user_input_tmp;
-        }else if(user_input_tmp == ESC){
-            user_input = ESC;
+        }else if(user_input_tmp == SP_EXIT){
+            user_input = SP_EXIT;
         }else{
-            user_input = 'x';
+            user_input = SP_UNDEFINED_INPUT;
         }
 
 
 
         switch(user_input) {
-        case ESC:
-            printf("ESC pressed \n");
-            printf("exit the program\n");
-	    break;
-        case 'w':
-            brush_color = get_color(user_input);
-            textlcd_write(user_input, 0, brush_color);
+        case SP_EXIT:
+            printf("KEYPAD44 pressed: exit the program \n");
             break;
-        case 'r':
-            brush_color = get_color(user_input);
-            textlcd_write(user_input, 0, brush_color);
-            break;
-        case 'g':
-            brush_color = get_color(user_input);
-            textlcd_write(user_input, 0,brush_color);
-            break;
-        case 'b':
-            brush_color = get_color(user_input);
-            textlcd_write(user_input, 0, brush_color);
-            break;
-        case 'e':
+        case SP_BRUSH_WHITE:
+        case SP_BRUSH_RED:
+        case SP_BRUSH_GREEN:
+        case SP_BRUSH_BLUE :
+        case SP_BRUSH_ERASER:
             textlcd_write(user_input, 0, brush_color);
             brush_color = get_color(user_input);
             break;
-        case '+':
+        case SP_BRUSH_SIZEUP:
             printf("+ pressed \n");
             brush_size += BRUSH_STEP;
             printf("increase brush size, brush size: %d\n",brush_size);
             textlcd_write(user_input, brush_size,0);
             break;
-        case '-':
+        case SP_BRUSH_SIZEDOWN:
             printf("- pressed \n");
             brush_size -= BRUSH_STEP;
             printf("reduce brush size, brush size: %d\n", brush_size);
             textlcd_write(user_input, brush_size,0);
             break;
 
-        case 's':
-            printf("save current touchlcd image");
-            user_input = KEYBOARD_WAITING;
+        /* case 's': */
+        /*     printf("save current touchlcd image"); */
+        /*     user_input = KEYBOARD_WAITING; */
+        /*     break; */
 
-            break;
-
-        case 'c':
+        case SP_CAMERA:
+            printf("c pressed, plain camera starts, save image with 's' \n");
+            printf("quit: press the same button(c) again \n");
             init_sp_camera(fb_mapped, temp_cv_image, face_file);
             break;
 
-        case 'f':
+        case SP_FACEDETECTION:
             init_sp_facedetect(fb_mapped, temp_cv_image);
             break;
 
-        case 'y' :
+        case SP_GRAYSCALE:
             //Gray Scaling
             //init_sp_gray_scaled(fb_mapped, temp_cv_image, face_file);
-            init_sp_gray_scaled(fb_mapped, temp_cv_image, face_file);
+            init_sp_grayscale(fb_mapped, temp_cv_image, face_file);
             break;
-        case 'l'://load function does not work
+        case SP_LOAD_IMAGE://load function does not work
           //  load_image = cvLoadImage(face_file, CV_LOAD_IMAGE_COLOR);//for face_file load
             load_image = cvLoadImage(save_file,CV_LOAD_IMAGE_COLOR);
             if(load_image == NULL){
@@ -405,20 +339,22 @@ void init_stickerphoto(){
             LCD_print(fb_mapped);
 
             break;
-        case 'x' :
+        case SP_UNDEFINED_INPUT:
             textlcd_write(user_input, 0,0);
             break;
 
+        case SP_EDITMODE:
+            // do nothing, editing mode
+            break;
+
         default:
-            printf("%c\n", user_input);
-            printf("undefined key pressed \n");
+            /* printf("%c\n", user_input); */
+            /* printf("undefined key pressed \n"); */
             break;
 
         }
 
     }
-    //cvSetData(save_img, csframe , save_img->widthStep);
-    //save_image_test(save_img, "./save_image.bmp");
 
 
     if (GetTouch() != -1) {
@@ -427,15 +363,12 @@ void init_stickerphoto(){
     }
   }
 
-  /* munmap(fb_mapped, mem_size); */
-  /* close(fb_fd); */
   close_gpio();
   close_keypad();
   close_dipsw();
   close_keyboard();
   close_camera();
-  close_LCD();
-  close_textlcd();
+  close_LCD(); close_textlcd();
   close_dotmatrix();
   close_segment();
   close_facedetect();

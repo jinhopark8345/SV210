@@ -12,11 +12,10 @@
 #include "keypad.h"
 #include "touchlcd.h"
 
-#define EVENT_BUF_NUM 64
-
+#define KEYPAD_EVENT_BUF_NUM 64
+#define TIME_INTERVAL_MSEC 1000
 
 int Ok_flag = 0;
-#define TIME_INTERVAL_MSEC 1200
 struct timeval lasttv;
 
 void init_keypad(){
@@ -72,13 +71,13 @@ unsigned short read_keypad(){
     int i, quit = 1;
     size_t read_bytes; // 몇 bytes read 했느냐
     int rtv_input = -1;
-    struct input_event event_buf[EVENT_BUF_NUM]; // 몇개의 event 까지 한꺼번에 읽느냐
+    struct input_event event_buf[KEYPAD_EVENT_BUF_NUM]; // 몇개의 event 까지 한꺼번에 읽느냐
     struct timeval tv;
     struct timeval newtv;
     int newInput = -1;
     /* printf("no problem 1\n"); */
-    // event 발생을 EVENT_BUF_NUM 만큼 읽어들인다.
-    read_bytes = read(keypad_fd, event_buf, (sizeof(struct input_event) * EVENT_BUF_NUM));
+    // event 발생을 KEYPAD_EVENT_BUF_NUM 만큼 읽어들인다.
+    read_bytes = read(keypad_fd, event_buf, (sizeof(struct input_event) * KEYPAD_EVENT_BUF_NUM));
     /* printf("no problem 2\n"); */
 
     if (read_bytes < sizeof(struct input_event)) {
@@ -102,7 +101,7 @@ unsigned short read_keypad(){
 
     // 4 works,
     Ok_flag = 0;//for iteration in stickerphoto.c
-    /* for (i = 0; i < EVENT_BUF_NUM; i++) { */
+    /* for (i = 0; i < KEYPAD_EVENT_BUF_NUM; i++) { */
 
 
     gettimeofday(&newtv, NULL);
@@ -114,7 +113,7 @@ unsigned short read_keypad(){
                 /* gettimeofday(&newtv, NULL); */
                 /* printf("event_buf[%d].code: %d\n",i, event_buf[i].code); */
                 rtv_input = event_buf[i].code;
-                rtv_input = translate_keypad(rtv_input);
+                rtv_input = mapKeypadInput(rtv_input);
                 event_buf[i].value = 1;
                 Ok_flag = 1;
 
@@ -128,61 +127,34 @@ unsigned short read_keypad(){
 
     return rtv_input;
 }
+int mapKeypadInput(int keypad_input){
 
-unsigned short translate_keypad(int keypad_input){
+    switch(keypad_input){
 
-    unsigned short user_input = 0;
+    case KEYPAD11: return SP_BRUSH_WHITE;
+    case KEYPAD12: return SP_BRUSH_RED;
+    case KEYPAD13: return SP_BRUSH_GREEN;
+    case KEYPAD14: return SP_BRUSH_BLUE;
 
-    switch(keypad_input) {
-    case -1: //
-        user_input = 0;
-        break;
-    case 1:
-        user_input = 'w';
-        break;
-    case 2:
-        user_input = 'r';
-        break;
-    case 3:
-        user_input = 'b';
-        break;
-    case 4:
-        user_input = 'g';
-        break;
-    case 5:
-        user_input = 'e';
-        break;
-    case 6:
-        user_input = '+';
-        break;
-    case 7:
-        user_input = '-';
-        break;
-    case 8:
-        user_input = 's';
-        break;
-    case 9:
-        user_input = 'c';
-        break;
+    case KEYPAD21: return SP_BRUSH_ERASER;
+    case KEYPAD22: return SP_BRUSH_SIZEUP;
+    case KEYPAD23: return SP_BRUSH_SIZEDOWN;
+    case KEYPAD24: return SP_CAMERA;
 
-    case 10:
-        user_input = 'f';
-        break;
-    case 11:
-        user_input = 'y';
-        break;
-    case 13:
-        user_input = 'l';
-        break;
-    case 16://for ESC
-        user_input =  16;
-    default:
-        printf("%c\n", user_input);
-        printf("undefined keypad pressed \n");
-        break;
+    case KEYPAD31: return SP_FACEDETECTION;
+    case KEYPAD32: return SP_GRAYSCALE;
+    case KEYPAD33: return SP_LOAD_IMAGE;
+
+        /* case KEYPAD34: return; */
+
+        /* case KEYPAD41: */
+        /* case KEYPAD42: */
+        /* case KEYPAD43: */
+
+    case KEYPAD43: return SP_STOP;
+    case KEYPAD44: return SP_EXIT;
+
+    default: return SP_UNDEFINED_INPUT;
+
     }
-
-
-
-    return user_input;
 }
