@@ -7,6 +7,7 @@
 #include <fcntl.h>
 
 #include "dotmatrix.h"
+#include "dipsw.h"
 
 int dot_dev;
 
@@ -19,7 +20,12 @@ void init_dotmatrix(){
 }
 
 void dotmatrix_write(int count){
-	write(dot_dev, &count, 4);
+
+    if(!(DOTMATRIX_ON>0)){ // TEXTLCD off
+        // do nothing
+    } else{
+        write(dot_dev, &count, 4);
+    }
 }
 
 

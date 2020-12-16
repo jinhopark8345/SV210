@@ -16,6 +16,7 @@
 
 #include "imagepr.h"
 #include "touchlcd.h"
+#include "dipsw.h"
 
 /* unsigned short backframe[384000]; */
 // 터치 받을 때 시간 넘어가면 통과할 때 사용
@@ -96,7 +97,6 @@ int GetTouch(void) {
                             ((sizeof(struct input_event)) * EVENT_BUF_NUM));
 
         for (i = 0; i < (read_bytests / sizeof(struct input_event)); i++) {
-            /* printf("event bufts %d\n", event_bufts[i].type); */
             switch (event_bufts[i].type) {
             case EV_ABS:
                 switch (event_bufts[i].code) {
@@ -166,11 +166,23 @@ void LCD_print(unsigned char *fb_mapped){
     // PALETTE HEIGHT and WIDTH define the size of the palette
     // PALETTE_START_Y and PALETTE_START_X define the start pos of the palette in the touchlcd
     */
-    for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
-        ystart = (LCD_WIDTH * PALETTE_START_Y + PALETTE_START_X) +(LCD_WIDTH * coor_y);
-        ptr = (unsigned short *)fb_mapped + ystart;
-        for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++)
-            *ptr++ = csframe[coor_x + ystart];
+
+    if(!(TOUCHLCD_ON>0)){ // TOUCHLCD off
+        for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
+            ystart = (LCD_WIDTH * PALETTE_START_Y + PALETTE_START_X) +(LCD_WIDTH * coor_y);
+            ptr = (unsigned short *)fb_mapped + ystart;
+            for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++){
+                *ptr++ = 0;
+            }
+        }
+    } else{ // TOUCHLCD on
+        for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
+            ystart = (LCD_WIDTH * PALETTE_START_Y + PALETTE_START_X) +(LCD_WIDTH * coor_y);
+            ptr = (unsigned short *)fb_mapped + ystart;
+            for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++){
+                *ptr++ = csframe[coor_x + ystart];
+            }
+        }
     }
 
     /* printf("start point value %d\n", csframe[PALETTE_START_X+1 +(PALETTE_START_Y+1) * LCD_WIDTH]); */

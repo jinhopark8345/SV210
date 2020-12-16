@@ -253,6 +253,22 @@ void init_stickerphoto(){
 
     user_input_tmp = read_keypad();
 
+
+
+    /*
+      need to update touchlcd to black screen even though touchlcd is
+      off
+    */
+    if(TOUCHLCD_ON == 0){ // TOUCHLCD off
+        LCD_print(fb_mapped);
+        TOUCHLCD_ON = 1;
+    }
+
+    if (GetTouch() != -1) { // update touchlcd whenever there is a new touch to touchlcd
+        setFrame(x_detected, y_detected, brush_color, brush_size);
+        LCD_print(fb_mapped);
+    }
+
     if(newInput_flag == 1){
         //reset the flag
         newInput_flag = -1;
@@ -348,10 +364,6 @@ void init_stickerphoto(){
     }
 
 
-    if (GetTouch() != -1) {
-      setFrame(x_detected, y_detected, brush_color, brush_size);
-      LCD_print(fb_mapped);
-    }
   }
 
   cvReleaseImage(&load_image);
