@@ -57,9 +57,8 @@ unsigned short get_color(unsigned short brush_color){
         }
         tmp = col.red;
         col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
-        printf("%d\n", col.rgbcol);
         brush_color = tmp<<10;
-        printf("brush color: red\n");
+        printf("brush color: red, color level: %d\n", col.rgbcol);
         break;
     case 'b': // blue
         // brush_color = (0b11111);
@@ -70,7 +69,7 @@ unsigned short get_color(unsigned short brush_color){
         tmp = col.blue;
         col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
         brush_color = tmp;
-        printf("brush color: blue\n");
+        printf("brush color: blue, color level: %d\n ", col.rgbcol);
         break;
     case 'g': // green
         // brush_color = (0b111111 << 5);
@@ -81,7 +80,7 @@ unsigned short get_color(unsigned short brush_color){
         tmp = col.green;
         col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
         brush_color = tmp<<5;
-        printf("brush color: green\n");
+        printf("brush color: green, color level: %d\n", col.rgbcol);
         break;
     case 'e': // eraser
         brush_color = PALETTE_ERASER;
@@ -229,9 +228,8 @@ void init_sp_facedetect(unsigned char *fb_mapped, IplImage* temp_cv_image){
 
     // start face detecting and after the app detects any face, start editing
     textlcd_write(user_input, 0,0);
-    printf("f pressed\n");
-    printf("face detection start\n");
-    printf("quit: q \n");
+    printf("f pressed: face detection start \n");
+    printf("press q to quit\n");
 
     while(user_input != 'q'){
         // loop until only if user hasn't pressed 'q' or a face hasn't detected

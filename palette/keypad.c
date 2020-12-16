@@ -16,7 +16,7 @@
 
 
 int Ok_flag = 0;
-int time_interval = 500000;
+#define TIME_INTERVAL_MSEC 1200
 struct timeval lasttv;
 
 void init_keypad(){
@@ -45,6 +45,7 @@ int is_newInput(struct timeval newtv){
     int msecDiff;
 
     secDiff = newtv.tv_sec - lasttv.tv_sec;
+
     if (newtv.tv_usec >= lasttv.tv_usec){
         usecDiff = newtv.tv_usec - lasttv.tv_usec;
     }else {
@@ -52,13 +53,13 @@ int is_newInput(struct timeval newtv){
     }
 
     msecDiff = usecDiff / 1000 + secDiff * 1000;
-
-    /* printf("msecDiff : %d\n" , msecDiff); */
-    if (msecDiff > 2000){
-        printf("msecDiff : %d\n" , msecDiff);
-
-        // update last time interval
-        lasttv = newtv;
+    if (msecDiff > TIME_INTERVAL_MSEC){
+        /* printf("\n"); */
+        /* printf("lasttv sec : %d\n", lasttv.tv_sec); */
+        /* printf("newtv sec : %d\n", newtv.tv_sec); */
+        /* printf("sec diff: %d, msec diff: %d, usec diff: %d\n", secDiff, msecDiff, usecDiff); */
+        /* printf("msecDiff : %d\n" , msecDiff); */
+        /* printf("usec diff: %d\n", usecDiff); */
 
         return 1;
     }
@@ -103,25 +104,26 @@ unsigned short read_keypad(){
     Ok_flag = 0;//for iteration in stickerphoto.c
     /* for (i = 0; i < EVENT_BUF_NUM; i++) { */
 
-    for (i = 0; i < 4; i++) {
-        if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
 
-            /* gettimeofday(&newtv, NULL); */
-
-            gettimeofday(&newtv, NULL);
-            newInput = is_newInput(newtv);
-
-            if (newInput == 1){
-                printf("\n Button key : %d, %d\n", event_buf[i].code, i);
+    gettimeofday(&newtv, NULL);
+    newInput = is_newInput(newtv);
+    if (newInput == 1){
+        /* printf("time : %d.%d\n", newtv.tv_sec, newtv.tv_usec); */
+        for (i = 0; i < 4; i++) {
+            if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
+                /* gettimeofday(&newtv, NULL); */
+                /* printf("event_buf[%d].code: %d\n",i, event_buf[i].code); */
                 rtv_input = event_buf[i].code;
                 rtv_input = translate_keypad(rtv_input);
                 event_buf[i].value = 1;
                 Ok_flag = 1;
-            }
 
+            }
         }
+
+        // update last time
+        lasttv = newtv;
     }
-    printf("\n");
 
 
     return rtv_input;
