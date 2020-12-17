@@ -27,6 +27,7 @@ int init_gpio(){
 		printf( "gpio device open ERROR!\n");
 		return -1;
 	}
+    gpio_button = 0;
 
     /* printf("gpio button initialized!\n"); */
 	/* printf("Please push the GPIO_0 port!\n"); */
@@ -45,32 +46,12 @@ void close_gpio(){
 
 
 void save_sp(){
-    IplImage *temp_cv_image = cvCreateImage(cvSize(LCD_WIDTH, LCD_HEIGHT), IPL_DEPTH_8U, 3);
-
-
     if(!(GPIO_ON > 0)){
         // do nothing
     }else {
-        /* read(gpio_dev,&gpio_button,2); */
-        /* gpio_button += 1; */
-        /* printf("%d\n",gpio_button); */
-        printf("gpio button pressed: save image as '%s'\n", SAVE_FILE);
-
-        textlcd_write(SP_SAVE, 0, 0);
-
-        if(DOTMATRIX_ON > 0){
-            dotmatrix_write(3);
-            dotmatrix_write(2);
-            dotmatrix_write(1);
-        }
-
-        // save whole lcd
-        RGB2cvIMG(temp_cv_image, csframe, LCD_WIDTH, LCD_HEIGHT);
-
-        // save image as cv format
-        cvSaveImage(SAVE_FILE, temp_cv_image);
-
-        cvReleaseImage(&temp_cv_image);
+        read(gpio_dev,&gpio_button,2);
+        gpio_button = 1;
+        printf("gpio_button : %d\n",gpio_button);
     }
     return;
 }

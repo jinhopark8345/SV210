@@ -111,6 +111,11 @@ void init_sp_camera(unsigned char *fb_mapped){
             textlcd_write(user_input, 0, 0);
         }
 
+        if(gpio_button % 2 == 1){
+            save_touchlcd();
+            gpio_button = 0;
+        }
+
     }
 }
 
@@ -167,6 +172,7 @@ void init_sp_facedetect(unsigned char *fb_mapped){
         if(num_detected_face > 0){
             user_input = SP_STOP; // to show that camera has stoped in textlcd
             textlcd_write(user_input, 0, 0);
+            /* dotmatrix_write(num_detected_face); */
             break;
         }
 
@@ -178,6 +184,11 @@ void init_sp_facedetect(unsigned char *fb_mapped){
             textlcd_write(user_input, 0, 0);
         }
 
+        if(gpio_button % 2 == 1){
+            save_touchlcd();
+            gpio_button = 0;
+        }
+
     }
 
 	cvReleaseImage(&temp_cv_image);
@@ -185,6 +196,34 @@ void init_sp_facedetect(unsigned char *fb_mapped){
 
 
 
+void save_touchlcd(){
+    IplImage *temp_cv_image = cvCreateImage(cvSize(LCD_WIDTH, LCD_HEIGHT), IPL_DEPTH_8U, 3);
+    u_int16_t i;
+    printf("gpio button pressed: save image as '%s'\n", SAVE_FILE);
+    if(DOTMATRIX_ON > 0){
+        for(i=9; i>0;i--){
+            dotmatrix_write(i);
+            m_delay(10);
+            dotmatrix_write(i);
+            m_delay(10);
+        }
+    }
+
+    textlcd_write(SP_SAVE, 0, 0);
+
+
+    // save whole lcd
+    RGB2cvIMG(temp_cv_image, csframe, LCD_WIDTH, LCD_HEIGHT);
+
+    // save image as cv format
+    cvSaveImage(SAVE_FILE, temp_cv_image);
+
+    cvReleaseImage(&temp_cv_image);
+
+    return;
+
+
+}
 
 
 void init_stickerphoto(){
@@ -241,6 +280,11 @@ void init_stickerphoto(){
 
     segment_write(&(col.rgbcol));
     dip_read();
+
+    if(gpio_button % 2 == 1){
+        save_touchlcd();
+        gpio_button = 0;
+    }
 
     user_input_tmp = read_keypad();
     if(newInput_flag == 1){
