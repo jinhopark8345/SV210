@@ -39,4 +39,4 @@ $(APP):$(GP) $(DIPS) $(KEYP) $(KEYBO) $(DOT) $(CAM) $(SEG) $(TOUCH) $(IMPR) $(TE
 	$(CC)  $(CFLAGS) -o $@ $^
 
 clean:
-	rm -f $(OBJS) $(DIPSW) $(GP) $(KEYP) $(DOT) $(TEXT) $(SEG) $(KEYBO) $(CAM) $(TOUCH) $(IMPR) $(APP)
+	rm -f $(OBJS) $(DIPS) $(GP) $(KEYP) $(DOT) $(TEXT) $(SEG) $(KEYBO) $(CAM) $(TOUCH) $(IMPR) $(APP)
