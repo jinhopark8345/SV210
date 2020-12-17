@@ -105,14 +105,10 @@ void init_sp_camera(unsigned char *fb_mapped){
 
         user_input_tmp = read_keypad();
         if(newInput_flag == 1){
-
-
-
+            printf("camera mode, new input detected, user_input: %d\n", user_input);
             newInput_flag = -1; // reset the flag
             user_input = user_input_tmp;
-
             textlcd_write(user_input, 0, 0);
-            /* printf("camera mode, new input detected, user_input: %d\n", user_input); */
         }
 
     }
