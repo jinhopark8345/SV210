@@ -25,10 +25,10 @@
 #include "keypad.h"
 #include "dipsw.h"
 
-unsigned short user_input=SP_EDITMODE;
+char user_input=SP_EDITMODE;
 
 typedef struct set_color{
-	unsigned short rgbcol;
+	unsigned int rgbcol;
 	unsigned short red;
 	unsigned short blue;
 	unsigned short green;	
@@ -95,7 +95,7 @@ void init_sp_camera(unsigned char *fb_mapped){
     printf("c pressed, plain camera starts, save image with gpio button \n");
     printf("quit: press the same button(c) again \n");
 
-    while(user_input != SP_STOP || user_input == SP_EXIT){
+    while(user_input != SP_STOP && user_input != SP_EXIT){
 
         // after read_camera2rgb, cis_rgb values changed
         // change csframe value -> show camera image on touchlcd
@@ -109,6 +109,7 @@ void init_sp_camera(unsigned char *fb_mapped){
         if(newInput_flag == 1){
             newInput_flag = -1; // reset the flag
             user_input = user_input_tmp;
+            textlcd_write(user_input, 0, 0);
             /* printf("camera mode, new input detected, user_input: %d\n", user_input); */
         }
 
@@ -117,7 +118,6 @@ void init_sp_camera(unsigned char *fb_mapped){
 
 
 void init_sp_grayscale(unsigned char *fb_mapped){
-    textlcd_write(user_input, 0,0);
     printf("y pressed: Gray scaling start\n");
 
     // update cis_rgb
@@ -145,19 +145,13 @@ void init_sp_facedetect(unsigned char *fb_mapped){
     IplImage *temp_cv_image = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
     // start face detecting and after the app detects any face, start editing
-    textlcd_write(user_input, 0,0);
     printf("f pressed: face detection start \n");
     printf("press q to quit\n");
 
-    while(user_input != SP_STOP){
+
+    while(user_input != SP_STOP && user_input != SP_EXIT){
 
         // loop until only if user hasn't pressed 'S' or a face hasn't detected
-        user_input_tmp = read_keypad();
-        if(newInput_flag == 1){
-            // reset the flag
-            newInput_flag = -1;
-            user_input = user_input_tmp;
-        }
 
         // after read_camera2rgb, cis_rgb values changed
         read_camera2rgb();
@@ -174,11 +168,22 @@ void init_sp_facedetect(unsigned char *fb_mapped){
         dotmatrix_write(num_detected_face);
 
         if(num_detected_face > 0){
-            user_input = SP_STOP;
+            user_input = SP_STOP; // to show that camera has stoped in textlcd
+            textlcd_write(user_input, 0, 0);
+            break;
         }
-    }
-	cvReleaseImage(&temp_cv_image);
 
+        user_input_tmp = read_keypad();
+        if(newInput_flag == 1){
+            // reset the flag
+            newInput_flag = -1;
+            user_input = user_input_tmp;
+            textlcd_write(user_input, 0, 0);
+        }
+
+    }
+
+	cvReleaseImage(&temp_cv_image);
 }
 
 
@@ -244,6 +249,7 @@ void init_stickerphoto(){
         //reset the flag
         newInput_flag = -1;
         user_input = user_input_tmp;
+        textlcd_write(user_input, brush_size, brush_color);
 
         switch(user_input) {
         case SP_EXIT:
@@ -254,20 +260,17 @@ void init_stickerphoto(){
         case SP_BRUSH_GREEN:
         case SP_BRUSH_BLUE :
         case SP_BRUSH_ERASER:
-            textlcd_write(user_input, 0, brush_color);
             brush_color = get_color(user_input);
             break;
         case SP_BRUSH_SIZEUP:
             printf("+ pressed \n");
             brush_size += BRUSH_STEP;
             printf("increase brush size, brush size: %d\n",brush_size);
-            textlcd_write(user_input, brush_size,0);
             break;
         case SP_BRUSH_SIZEDOWN:
             printf("- pressed \n");
             brush_size -= BRUSH_STEP;
             printf("reduce brush size, brush size: %d\n", brush_size);
-            textlcd_write(user_input, brush_size,0);
             break;
 
         case SP_CAMERA:
@@ -283,6 +286,7 @@ void init_stickerphoto(){
             break;
 
         case SP_LOAD_IMAGE:
+
             load_image = cvLoadImage(SAVE_FILE ,CV_LOAD_IMAGE_COLOR);
             if(load_image == NULL){
                 printf("\nload image error!");
@@ -292,10 +296,12 @@ void init_stickerphoto(){
             LCD_print(fb_mapped);
 
             break;
-        case SP_UNDEFINED_INPUT:
-            textlcd_write(user_input, 0,0);
+
+        case SP_STOP:
             break;
 
+        case SP_UNDEFINED_INPUT:
+            break;
         case SP_EDITMODE:
             // do nothing, editing mode
             break;

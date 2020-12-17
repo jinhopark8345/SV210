@@ -56,8 +56,8 @@ void _textlcd_write(char* str1, char* str2){
     ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
     write(text_dev,str2,16);
 
-    print_str(str1);
-    print_str(str2);
+    /* print_str(str1); */
+    /* print_str(str2); */
     /* printf("str1: %s\n", str1); */
     /* printf("str2: %s\n", str2); */
 
@@ -81,6 +81,7 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
     char *flStr = malloc(16*sizeof(char)); // textlcd first line string
     char *slStr = malloc(16*sizeof(char)); // textlcd second line string
     char *tempStr = malloc(16*sizeof(char));
+    char *emptyStr = "                ";
     /* char tempStr[16]; */
 
     if(!(TEXTLCD_ON>0)){ // TEXTLCD off
@@ -98,12 +99,8 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
             resetStr(flStr);
             resetStr(slStr);
 
-            /* if(sizeof flStr > strlen("WHITE")){ */
-            /*     strcpy(flStr, "WHITE"); */
-            /* } */
-
-            pad_string("WHITE", flStr);
-            pad_string("something", slStr);
+            pad_string("SELECTED: WHITE", flStr);
+            pad_string(emptyStr, slStr);
             _textlcd_write(flStr, slStr);
 
             break;
@@ -113,10 +110,10 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
             resetStr(flStr);
             resetStr(slStr);
 
-            pad_string("RED", flStr);
+            pad_string("SELECTED: RED", flStr);
 
             tmp_red = (brush_color>>10)/6;
-            printf("tmp_red: %d\n", tmp_red);
+            /* printf("tmp_red: %d\n", tmp_red); */
             sprintf(tempStr,"Color level: %d",tmp_red);
             pad_string(tempStr, slStr);
 
@@ -127,10 +124,10 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
             resetStr(flStr);
             resetStr(slStr);
 
-            pad_string("BLUE", flStr);
+            pad_string("SELECTED: BLUE", flStr);
 
             tmp_blue = brush_color/6;
-            printf("tmp_blue: %d\n", tmp_blue);
+            /* printf("tmp_blue: %d\n", tmp_blue); */
             sprintf(tempStr,"Color level: %d",tmp_blue);
             pad_string(tempStr, slStr);
 
@@ -142,7 +139,7 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
             resetStr(flStr);
             resetStr(slStr);
 
-            pad_string("GREEN", flStr);
+            pad_string("SELECTED: GREEN", flStr);
 
             tmp_green = (brush_color>>5)/6;
             sprintf(tempStr,"Color level: %d",tmp_green);
@@ -152,62 +149,102 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
 
             break;
         case SP_BRUSH_ERASER:
-            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-            write(text_dev,"Eraser          ",16);
-            strcommand.pos = 40;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("SELECTED: ERASER", flStr);
+            pad_string(emptyStr, slStr);
+
+            _textlcd_write(flStr, slStr);
+
             break;
         case SP_BRUSH_SIZEUP:
-            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-            write(text_dev,"Brush bigger     ",16);
-            strcommand.pos = 40;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-            sprintf(slStr,"      %d",brush_size);
-            for(i = 0 ;slStr[i] != '\0';i++){
+            resetStr(flStr);
+            resetStr(slStr);
 
-            }
-            for(j = i;j<16;j++){
-                slStr[j] = ' ';
-            }
-            write(text_dev,slStr,16);
-            strcommand.pos = 0;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            pad_string("BRUSH SIZE UP", flStr);
+            sprintf(tempStr,"BRUSH SIZE: %d",brush_size);
+            pad_string(tempStr, slStr);
+
+            _textlcd_write(flStr, slStr);
+
             break;
         case SP_BRUSH_SIZEDOWN:
-            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-            write(text_dev,"Brush smaller    ",16);
-            strcommand.pos = 40;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
-            sprintf(slStr,"      %d",brush_size);
-            for(i = 0 ;slStr[i] != '\0';i++){
+            resetStr(flStr);
+            resetStr(slStr);
 
-            }
-            for(j = i;j<16;j++){
-                slStr[j] = ' ';
-            }
-            write(text_dev,slStr,16);
-            strcommand.pos = 0;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            pad_string("BRUSH SIZE DOWN", flStr);
+            sprintf(tempStr,"BRUSH SIZE: %d",brush_size);
+            pad_string(tempStr, slStr);
+
+            _textlcd_write(flStr, slStr);
+
+            break;
+
+        case SP_CAMERA:
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("START", flStr);
+            pad_string("CAMERA", slStr);
+
+            _textlcd_write(flStr, slStr);
             break;
         case SP_FACEDETECTION:
-            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-            write(text_dev,"FACE DETECT      ",16);
-            strcommand.pos = 40;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("START", flStr);
+            pad_string("FACE DETECTION", slStr);
+
+            _textlcd_write(flStr, slStr);
             break;
 
         case SP_GRAYSCALE:
-            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-            write(text_dev,"GRAY SCALE      ",16);
-            strcommand.pos = 40;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("APPLY", flStr);
+            pad_string("GRAYSCALE", slStr);
+
+            _textlcd_write(flStr, slStr);
+
+            break;
+        case SP_LOAD_IMAGE:
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("LOAD", flStr);
+            pad_string("SAVED IMAGE",slStr);
+
+            _textlcd_write(flStr, slStr);
+
+            break;
+        case SP_STOP:
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("STOP", flStr);
+            pad_string("CAMERA",slStr);
+
+            _textlcd_write(flStr, slStr);
+
             break;
 
         case SP_UNDEFINED_INPUT:
-            ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32);
-            write(text_dev,"SET DIPSW 255   ",16);
-            strcommand.pos = 40;
-            ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32);
+        case SP_EDITMODE:
+
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("EDIT MODE", flStr);
+            pad_string("INPUT", slStr);
+
+            _textlcd_write(flStr, slStr);
+            /* ioctl(text_dev,TEXTLCD_CLEAR,&strcommand,32); */
+            /* write(text_dev,"SET DIPSW 255   ",16); */
+            /* strcommand.pos = 40; */
+            /* ioctl(text_dev,TEXTLCD_DD_ADDRESS,&strcommand,32); */
             break;
         default:
             break;

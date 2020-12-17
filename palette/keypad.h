@@ -39,7 +39,7 @@
 #define SP_EXIT 'q'
 
 #define SP_UNDEFINED_INPUT 'x'
-#define SP_EDITMODE 1000
+#define SP_EDITMODE 50
 
 int keypad_fd;
 int newInput_flag;
