@@ -250,6 +250,7 @@ void init_stickerphoto(){
 
         switch(user_input) {
         case SP_EXIT:
+            resetFrame(fb_mapped);
             printf("KEYPAD44 pressed: exit the program \n");
             break;
         case SP_BRUSH_RGB:

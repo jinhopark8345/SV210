@@ -282,6 +282,36 @@ struct lcd_variable init_palette(char* background){
 
 }
 
+
+// display rgb values in csframe
+void resetFrame(unsigned char *fb_mapped){
+    int coor_y, coor_x;
+    int ystart = 0;
+    unsigned short *ptr;
+    int i;
+    /*
+    // control the area that user can edit
+    // PALETTE HEIGHT and WIDTH define the size of the palette
+    // PALETTE_START_Y and PALETTE_START_X define the start pos of the palette in the touchlcd
+    */
+
+    if(!(TOUCHLCD_ON>0)){ // TOUCHLCD off
+        for (coor_y = 0; coor_y < PALETTE_HEIGHT; coor_y++) {
+            ystart = (LCD_WIDTH * PALETTE_START_Y + PALETTE_START_X) +(LCD_WIDTH * coor_y);
+            ptr = (unsigned short *)fb_mapped + ystart;
+            for (coor_x = 0; coor_x < PALETTE_WIDTH; coor_x++){
+                *ptr++ = 0;
+            }
+        }
+    } else{ // TOUCHLCD on
+        ptr = (unsigned short *)fb_mapped;
+        for (i = 0; i < 384000; i++) {
+            /* *ptr++ = 0; */
+            *ptr++ = DEFAULT_PALETTE_COLOR;
+        }
+    }
+
+}
 /*
   draw circle on the image
   position: (x,y)

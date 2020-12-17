@@ -58,11 +58,12 @@ void save_sp(){
 
         textlcd_write(SP_SAVE, 0, 0);
 
-        /* if(DOTMATRIX_ON > 0){ */
-        /*     dotmatrix_write(3); */
-        /*     dotmatrix_write(2); */
-        /*     dotmatrix_write(1); */
-        /* } */
+        if(DOTMATRIX_ON > 0){
+            dotmatrix_write(3);
+            dotmatrix_write(2);
+            dotmatrix_write(1);
+        }
+
         // save whole lcd
         RGB2cvIMG(temp_cv_image, csframe, LCD_WIDTH, LCD_HEIGHT);
 

@@ -20,7 +20,7 @@ int x_detected_prev, y_detected_prev;
 #define LCD_HEIGHT 480
 //#define PALETTE_WIDTH 400 // 320 + 40*2
 //#define PALETTE_HEIGHT 320 // 240 + 40*2
-#define PALETTE_WIDTH 600 // 320 + 40*2
+#define PALETTE_WIDTH 550 // 320 + 40*2
 #define PALETTE_HEIGHT 480 // 240 + 40*2
 #define PALETTE_START_X 0
 #define PALETTE_START_Y 0
@@ -31,7 +31,7 @@ int x_detected_prev, y_detected_prev;
 #define PALETTE_IMAGE_WIDTH 320
 #define PALETTE_IMAGE_HEIGHT 240
 
-#define PALETTE_IMAGE_START_X 140 // 395+40
+#define PALETTE_IMAGE_START_X 110 // 395+40
 #define PALETTE_IMAGE_START_Y 120 // 395-40
 //#define PALETTE_IMAGE_START_X 435 // 395+40
 //#define PALETTE_IMAGE_START_Y 120 // 395-40
