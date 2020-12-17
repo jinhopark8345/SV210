@@ -69,7 +69,7 @@ int is_newInput(struct timeval newtv){
 unsigned short read_keypad(){
     int i, quit = 1;
     size_t read_bytes; // 몇 bytes read 했느냐
-    int rtv_input = -1;
+    char rtv_input = -1;
     struct input_event event_buf[KEYPAD_EVENT_BUF_NUM]; // 몇개의 event 까지 한꺼번에 읽느냐
     struct timeval tv;
     struct timeval newtv;
@@ -97,9 +97,12 @@ unsigned short read_keypad(){
         /* printf("time : %d.%d\n", newtv.tv_sec, newtv.tv_usec); */
         for (i = 0; i < 4; i++) {
             if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
-                rtv_input = event_buf[i].code;
-                rtv_input = mapKeypadInput(rtv_input);
+                /* rtv_input = event_buf[i].code; */
+                /* rtv_input = mapKeypadInput(rtv_input); */
+                rtv_input = mapKeypadInput(event_buf[i].code);
                 event_buf[i].value = 1;
+
+                printf("user_input: %c\n", rtv_input);
 
             }
         }
@@ -111,7 +114,7 @@ unsigned short read_keypad(){
 
     return rtv_input;
 }
-int mapKeypadInput(int keypad_input){
+char mapKeypadInput(u_int16_t keypad_input){
 
     switch(keypad_input){
 
@@ -127,13 +130,10 @@ int mapKeypadInput(int keypad_input){
 
     case KEYPAD31: return SP_FACEDETECTION;
     case KEYPAD32: return SP_GRAYSCALE;
+    /* case KEYPAD33: return; */
+    /* case KEYPAD34: return; */
 
-        /* case KEYPAD34: return; */
-
-        /* case KEYPAD41: */
-        /* case KEYPAD42: */
-        /* case KEYPAD43: */
-
+    /* case KEYPAD41: */
     case KEYPAD42: return SP_LOAD_IMAGE;
     case KEYPAD43: return SP_STOP;
     case KEYPAD44: return SP_EXIT;

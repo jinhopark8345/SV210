@@ -25,12 +25,7 @@
 #include "keypad.h"
 #include "dipsw.h"
 
-
-#define KEYBOARD_WAITING 0
-#define DIPSW_ON 255
-
-unsigned short user_input=KEYBOARD_WAITING;
-int keypad_count=0;
+unsigned short user_input=SP_EDITMODE;
 
 typedef struct set_color{
 	unsigned short rgbcol;
@@ -95,24 +90,12 @@ unsigned short get_color(unsigned short brush_color){
 
 
 void init_sp_camera(unsigned char *fb_mapped){
-
     unsigned short user_input_tmp = 0;
-    user_input = SP_CAMERA;
-    while(user_input == SP_CAMERA){
 
-        user_input_tmp = read_keypad();
-        if(newInput_flag == 1){
-            // reset the flag
-            newInput_flag = -1;
+    printf("c pressed, plain camera starts, save image with gpio button \n");
+    printf("quit: press the same button(c) again \n");
 
-            if(vkey[1] == DIPSW_ON){
-                user_input = user_input_tmp;
-            }else if(user_input_tmp == SP_EXIT){
-                user_input = SP_EXIT;
-            }else{
-                user_input = SP_UNDEFINED_INPUT;
-            }
-        }
+    while(user_input != SP_STOP || user_input == SP_EXIT){
 
         // after read_camera2rgb, cis_rgb values changed
         // change csframe value -> show camera image on touchlcd
@@ -122,13 +105,13 @@ void init_sp_camera(unsigned char *fb_mapped){
         // display changed csframe values
         LCD_print(fb_mapped);
 
-        if(user_input == SP_STOP){
-            printf("Stop button pressed, start editing, use last saved image\n");
-
-            // go back to original state
-            user_input = SP_EDITMODE;
-            break;
+        user_input_tmp = read_keypad();
+        if(newInput_flag == 1){
+            newInput_flag = -1; // reset the flag
+            user_input = user_input_tmp;
+            /* printf("camera mode, new input detected, user_input: %d\n", user_input); */
         }
+
     }
 }
 
@@ -156,7 +139,6 @@ void init_sp_grayscale(unsigned char *fb_mapped){
     return;
 }
 void init_sp_facedetect(unsigned char *fb_mapped){
-
     /* facedetect variables */
     int num_detected_face = 0;
     unsigned short user_input_tmp = 0;
@@ -174,13 +156,7 @@ void init_sp_facedetect(unsigned char *fb_mapped){
         if(newInput_flag == 1){
             // reset the flag
             newInput_flag = -1;
-            if(vkey[1] == DIPSW_ON){
-                user_input = user_input_tmp;
-            }else if(user_input_tmp == SP_EXIT){
-                user_input = SP_EXIT;
-            }else{
-                user_input = SP_UNDEFINED_INPUT;
-            }
+            user_input = user_input_tmp;
         }
 
         // after read_camera2rgb, cis_rgb values changed
@@ -247,41 +223,27 @@ void init_stickerphoto(){
 
   while (user_input != SP_EXIT) { // KEYPAD44
 
-    segment_write(&(col.rgbcol));
 
-    dip_read();
-
-    user_input_tmp = read_keypad();
-
-
-
-    /*
-      need to update touchlcd to black screen even though touchlcd is
-      off
-    */
+    /* need to update touchlcd to black screen even though touchlcd is off */
     if(TOUCHLCD_ON == 0){ // TOUCHLCD off
         LCD_print(fb_mapped);
         TOUCHLCD_ON = 1;
     }
 
-    if (GetTouch() != -1) { // update touchlcd whenever there is a new touch to touchlcd
+    /* update touchlcd whenever there is a new touch to touchlcd */
+    if (GetTouch() != -1) {
         setFrame(x_detected, y_detected, brush_color, brush_size);
         LCD_print(fb_mapped);
     }
 
+    segment_write(&(col.rgbcol));
+    dip_read();
+
+    user_input_tmp = read_keypad();
     if(newInput_flag == 1){
         //reset the flag
         newInput_flag = -1;
         user_input = user_input_tmp;
-        /* if(KEYPAD_ON > 0){ */
-        /*     user_input = user_input_tmp; */
-        /* }else if(user_input_tmp == SP_EXIT){ */
-        /*     user_input = SP_EXIT; */
-        /* }else{ */
-        /*     user_input = SP_UNDEFINED_INPUT; */
-        /* } */
-
-
 
         switch(user_input) {
         case SP_EXIT:
@@ -308,14 +270,7 @@ void init_stickerphoto(){
             textlcd_write(user_input, brush_size,0);
             break;
 
-        /* case 's': */
-        /*     printf("save current touchlcd image"); */
-        /*     user_input = KEYBOARD_WAITING; */
-        /*     break; */
-
         case SP_CAMERA:
-            printf("c pressed, plain camera starts, save image with gpio button \n");
-            printf("quit: press the same button(c) again \n");
             init_sp_camera(fb_mapped);
             break;
 
@@ -333,16 +288,7 @@ void init_stickerphoto(){
                 printf("\nload image error!");
                 return;
             }
-
-            //cvIMG2RGB565(load_image, cis_rgb, PALETTE_IMAGE_WIDTH, PALETTE_IMAGE_HEIGHT);// for face_file load
             load_img2LCD(load_image);
-
-            // load_image size is much bigger than cis_rgb, that's why it doesn't work
-            /* cvIMG2RGB565(load_image, cis_rgb, LCD_WIDTH, LCD_HEIGHT); */
-
-            // save image file rgb value to csframe for editing purpose
-            /* change_palette_image(cis_rgb); */
-            // to show the user that saved image has been loaded
             LCD_print(fb_mapped);
 
             break;

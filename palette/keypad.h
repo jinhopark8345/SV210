@@ -48,6 +48,6 @@ void init_keypad();
 void close_keypad();
 unsigned short read_keypad();
 unsigned short translate_keypad();
-int mapKeypadInput(int keypad_input);
+char mapKeypadInput(u_int16_t keypad_input);
 
 #endif

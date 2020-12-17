@@ -29,6 +29,8 @@ struct strcommand_varible {
         char buf[16];
 };
 
+
+void pad_string(char* srcStr, char* dstStr);
 void init_textlcd();
 void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_color);
 void close_textlcd();
