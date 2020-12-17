@@ -2,7 +2,7 @@
 #define DOTMATRIX_H
 
 void init_dotmatrix();
-void dotmatrix_write(int count);
+void dotmatrix_write(unsigned short count);
 void close_dotmatrix();
 
 #endif

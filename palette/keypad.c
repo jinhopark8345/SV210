@@ -118,7 +118,7 @@ char mapKeypadInput(u_int16_t keypad_input){
 
     switch(keypad_input){
 
-    case KEYPAD11: return SP_BRUSH_WHITE;
+    case KEYPAD11: return SP_BRUSH_RGB;
     case KEYPAD12: return SP_BRUSH_RED;
     case KEYPAD13: return SP_BRUSH_GREEN;
     case KEYPAD14: return SP_BRUSH_BLUE;
@@ -126,10 +126,10 @@ char mapKeypadInput(u_int16_t keypad_input){
     case KEYPAD21: return SP_BRUSH_ERASER;
     case KEYPAD22: return SP_BRUSH_SIZEUP;
     case KEYPAD23: return SP_BRUSH_SIZEDOWN;
-    case KEYPAD24: return SP_CAMERA;
 
     case KEYPAD31: return SP_FACEDETECTION;
     case KEYPAD32: return SP_GRAYSCALE;
+    case KEYPAD33: return SP_CAMERA;
     /* case KEYPAD33: return; */
     /* case KEYPAD34: return; */
 

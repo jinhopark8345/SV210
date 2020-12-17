@@ -39,9 +39,9 @@ struct set_color col={30, 30, 30, 30};
 unsigned short get_color(unsigned short brush_color){
     unsigned short tmp=0;
     switch (brush_color) {
-    case SP_BRUSH_WHITE:
-        brush_color = 0b1111111111111111;
-        printf("brush color: white\n");
+    case SP_BRUSH_RGB:
+        brush_color = (col.red << 11 | col.green << 5 | col.blue);
+        printf("brush color: rgb\n");
         break;
     case SP_BRUSH_RED:
         // brush_color = (0b11111 << 11);
@@ -87,8 +87,6 @@ unsigned short get_color(unsigned short brush_color){
     return brush_color;
 }
 
-
-
 void init_sp_camera(unsigned char *fb_mapped){
     unsigned short user_input_tmp = 0;
 
@@ -107,8 +105,12 @@ void init_sp_camera(unsigned char *fb_mapped){
 
         user_input_tmp = read_keypad();
         if(newInput_flag == 1){
+
+
+
             newInput_flag = -1; // reset the flag
             user_input = user_input_tmp;
+
             textlcd_write(user_input, 0, 0);
             /* printf("camera mode, new input detected, user_input: %d\n", user_input); */
         }
@@ -165,7 +167,6 @@ void init_sp_facedetect(unsigned char *fb_mapped){
         // detect face based on cis_rgb
         num_detected_face = detect_face(temp_cv_image, cis_rgb, fb_mapped);
         printf("%d detected!!\n", num_detected_face);
-        dotmatrix_write(num_detected_face);
 
         if(num_detected_face > 0){
             user_input = SP_STOP; // to show that camera has stoped in textlcd
@@ -211,6 +212,7 @@ void init_stickerphoto(){
   unsigned short keypad_input_tmp = 0;
   int i;
 
+  brush_color = get_color(SP_BRUSH_RGB);
   init_gpio();
   init_keypad();
   init_dipsw();
@@ -249,44 +251,50 @@ void init_stickerphoto(){
         //reset the flag
         newInput_flag = -1;
         user_input = user_input_tmp;
-        textlcd_write(user_input, brush_size, brush_color);
 
         switch(user_input) {
         case SP_EXIT:
             printf("KEYPAD44 pressed: exit the program \n");
             break;
-        case SP_BRUSH_WHITE:
+        case SP_BRUSH_RGB:
         case SP_BRUSH_RED:
         case SP_BRUSH_GREEN:
         case SP_BRUSH_BLUE :
         case SP_BRUSH_ERASER:
             brush_color = get_color(user_input);
+            /* textlcd_write(user_input, 0, brush_color); */
+            textlcd_write(user_input, brush_size, brush_color);
             break;
         case SP_BRUSH_SIZEUP:
+            textlcd_write(user_input, brush_size, brush_color);
             printf("+ pressed \n");
             brush_size += BRUSH_STEP;
             printf("increase brush size, brush size: %d\n",brush_size);
             break;
         case SP_BRUSH_SIZEDOWN:
+            textlcd_write(user_input, brush_size, brush_color);
             printf("- pressed \n");
             brush_size -= BRUSH_STEP;
             printf("reduce brush size, brush size: %d\n", brush_size);
             break;
 
         case SP_CAMERA:
+            textlcd_write(user_input, brush_size, brush_color);
             init_sp_camera(fb_mapped);
             break;
 
         case SP_FACEDETECTION:
+            textlcd_write(user_input, brush_size, brush_color);
             init_sp_facedetect(fb_mapped);
             break;
 
         case SP_GRAYSCALE:
+            textlcd_write(user_input, brush_size, brush_color);
             init_sp_grayscale(fb_mapped);
             break;
 
         case SP_LOAD_IMAGE:
-
+            textlcd_write(user_input, brush_size, brush_color);
             load_image = cvLoadImage(SAVE_FILE ,CV_LOAD_IMAGE_COLOR);
             if(load_image == NULL){
                 printf("\nload image error!");
@@ -298,6 +306,7 @@ void init_stickerphoto(){
             break;
 
         case SP_STOP:
+            textlcd_write(user_input, brush_size, brush_color);
             break;
 
         case SP_UNDEFINED_INPUT:

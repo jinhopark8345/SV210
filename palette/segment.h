@@ -2,7 +2,7 @@
 #define SEGMENT_H
 
 void init_segmenet();
-void segment_write(unsigned short *color);
+void segment_write(unsigned int *color);
 void close_segment();
 
 #endif

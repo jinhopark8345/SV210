@@ -95,11 +95,11 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
 
     }else { // TEXTLCD on
         switch(ch){
-        case SP_BRUSH_WHITE:
+        case SP_BRUSH_RGB:
             resetStr(flStr);
             resetStr(slStr);
 
-            pad_string("SELECTED: WHITE", flStr);
+            pad_string("SELECTED: RGB", flStr);
             pad_string(emptyStr, slStr);
             _textlcd_write(flStr, slStr);
 
@@ -231,6 +231,27 @@ void textlcd_write(char ch, unsigned short brush_size, unsigned short brush_colo
 
             break;
 
+        case SP_EXIT:
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("SELECTED: EXIT", flStr);
+            pad_string("EXIT PROGRAM",slStr);
+
+            _textlcd_write(flStr, slStr);
+
+            break;
+
+        case SP_SAVE:
+            resetStr(flStr);
+            resetStr(slStr);
+
+            pad_string("SAVE ", flStr);
+            pad_string("TEXTLCD IMAGE",slStr);
+
+            _textlcd_write(flStr, slStr);
+
+            break;
         case SP_UNDEFINED_INPUT:
         case SP_EDITMODE:
 

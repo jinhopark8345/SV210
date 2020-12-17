@@ -14,7 +14,7 @@ void init_segment(){
     }
 }
 
-void segment_write(unsigned short *color){
+void segment_write(unsigned int *color){
 
     if(!(SEGMENT_ON>0)){ // TEXTLCD off
         // do nothing

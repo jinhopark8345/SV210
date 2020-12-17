@@ -21,7 +21,7 @@
 #define KEYPAD43 15
 #define KEYPAD44 16
 
-#define SP_BRUSH_WHITE 'w'
+#define SP_BRUSH_RGB 'w'
 #define SP_BRUSH_RED 'r'
 #define SP_BRUSH_GREEN 'g'
 #define SP_BRUSH_BLUE 'b'
@@ -37,6 +37,8 @@
 
 #define SP_STOP 'S'
 #define SP_EXIT 'q'
+
+#define SP_SAVE 's'
 
 #define SP_UNDEFINED_INPUT 'x'
 #define SP_EDITMODE 50
