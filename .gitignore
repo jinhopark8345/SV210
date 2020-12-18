@@ -148,3 +148,4 @@ plan.org
 !/palette/*.c
 !/palette/*.h
 !/palette/Makefile
+!palette.zip

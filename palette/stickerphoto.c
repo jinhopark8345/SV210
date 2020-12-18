@@ -28,7 +28,7 @@
 char user_input=SP_EDITMODE;
 
 typedef struct set_color{
-	unsigned int rgbcol;
+	unsigned int rgbcol; // only for segment
 	unsigned short red;
 	unsigned short blue;
 	unsigned short green;	
@@ -49,9 +49,8 @@ unsigned short get_color(unsigned short brush_color){
         if(col.red>=63){
             col.red = 0;
         }
-        tmp = col.red;
         col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
-        brush_color = tmp<<10;
+        brush_color = col.red<<10;
         printf("brush color: red, color level: %d\n", col.rgbcol);
         break;
     case SP_BRUSH_BLUE:
@@ -60,9 +59,8 @@ unsigned short get_color(unsigned short brush_color){
         if(col.blue>=63){
             col.blue = 0;
         }
-        tmp = col.blue;
         col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
-        brush_color = tmp;
+        brush_color = col.blue;
         printf("brush color: blue, color level: %d\n ", col.rgbcol);
         break;
     case SP_BRUSH_GREEN:
@@ -71,9 +69,8 @@ unsigned short get_color(unsigned short brush_color){
         if(col.green>=63){
             col.green = 0;
         }
-        tmp = col.green;
         col.rgbcol = (col.red/6)*10000 + col.green/6*100 + col.blue/6;
-        brush_color = tmp<<5;
+        brush_color = col.green<<5;
         printf("brush color: green, color level: %d\n", col.rgbcol);
         break;
     case SP_BRUSH_ERASER: // eraser

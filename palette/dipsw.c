@@ -49,15 +49,6 @@ void dip_read(){
     TEXTLCD_ON =bitcheck(vkey[1], TEXTLCD_MASK);
     SEGMENT_ON = bitcheck(vkey[1], SEGMENT_MASK);
     GPIO_ON = bitcheck(vkey[1], GPIO_MASK);
-
-    /* printf("\n"); */
-    /* printf("KEYPAD_ON : %d\n", (KEYPAD_ON)); */
-    /* printf("DOTMATRIX_ON : %d\n", (DOTMATRIX_ON)); */
-    /* printf("TOUCHLCD_ON : %d\n", (TOUCHLCD_ON)); */
-    /* printf("TEXTLCD_ON : %d\n", (TEXTLCD_ON)); */
-    /* printf("SEGMENT_ON : %d\n", (SEGMENT_ON)); */
-    /* printf("GPIO_ON : %d\n", (GPIO_ON)); */
-
 }
 
 

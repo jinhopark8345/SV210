@@ -137,17 +137,3 @@ keypad동작을 다음과 같이 활성화
         }
     }
 ......
-
-##camera
-camera나 영상처리 중 종료할 때의 key를 16번(ESC, 메뉴 선택모드에서는 stickerphoto종료)로 통일
-camera모드의 load모드는 keypad의 13번으로 변경
-
-##Load image
-.bmp 가아니면 load가 안되는 문제가 있음
-
-그림판으로 그린 image도 load할 수 있게하려면 cvsetdata함수를 써야한다?
-
-간혹 camera기능 동작시 load keypad입력후 입력이 여러개 받아들여져 카메라가 종료되어버리는 문제가 있다.
-tmp_cv_img로 load하지 않고 .bmp파일을 load하는 것을 권장
-
-13th keypad sw matches load function 

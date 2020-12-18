@@ -417,13 +417,9 @@ void update_cis_rgb(unsigned short *cis_rgb){
         ystart = (LCD_WIDTH * PALETTE_IMAGE_START_Y + PALETTE_IMAGE_START_X) +(LCD_WIDTH * coor_y);
         ptr = (unsigned short *)lcdvar.fb_mapped + ystart;
         for (coor_x = 0; coor_x < PALETTE_IMAGE_WIDTH; coor_x++){
-            /* frame[coor_x + ystart] = DEFAULT_PALETTE_COLOR; */
-            /* csframe[coor_x + ystart] = rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH]; */
             cis_rgb[coor_x + coor_y * PALETTE_IMAGE_WIDTH] = csframe[coor_x + ystart];
         }
     }
-
-
     return;
 }
 

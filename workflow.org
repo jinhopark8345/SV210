@@ -1,0 +1,186 @@
+* Input device
+** dipsw
+read dipsw variable from vkey and update app routine accordingly in
+stickerphoto
+*** open
+#+begin_src c
+// open device
+if ((dip_dev=open("/dev/dipsw",o_rdonly)) < 0) {
+    perror("dipsw open fail\n");
+    return -1;
+}
+
+#+end_src
+*** read
+#+begin_src C
+/* dipsw.h */
+unsigned short vkey[2];
+
+/* dipsw.c */
+void dip_read(){
+  int temp = -1;
+  int temp2 = -1;
+  int temp3 = -1;
+  int temp4 = -1;
+  int temp5 = -1;
+  int temp6 = -1;
+
+  read(dip_dev, &vkey, 4);
+
+  // and pass the vkey information to each device variable so that SP can update the on/off state
+  KEYPAD_ON = bitcheck(vkey[1], KEYPAD_MASK);
+  DOTMATRIX_ON = bitcheck(vkey[1], DOTMATRIX_MASK);
+  TOUCHLCD_ON = bitcheck(vkey[1], TOUCHLCD_MASK) ;
+  TEXTLCD_ON =bitcheck(vkey[1], TEXTLCD_MASK);
+  SEGMENT_ON = bitcheck(vkey[1], SEGMENT_MASK);
+  GPIO_ON = bitcheck(vkey[1], GPIO_MASK);
+}
+#+end_src
+** keypad
+*** open
+#+begin_src C
+if ((keypad_fd = open("/dev/input/event3", O_RDONLY | O_NONBLOCK)) < 0) {
+    printf("application : keypad driver open fail!\n");
+    exit(1);
+}
+#+end_src
+*** read
+read keypad with interval(1000msec)
+#+begin_src C
+// check if the time interval between new input and last input
+// and if the interval was longer than threshold(1000msec) then return 1 that indicate valid new input
+int is_newInput(struct timeval newtv){
+    int secDiff;
+    int usecDiff;
+    int msecDiff;
+
+    secDiff = newtv.tv_sec - lasttv.tv_sec;
+    if (newtv.tv_usec >= lasttv.tv_usec){
+        usecDiff = newtv.tv_usec - lasttv.tv_usec;
+    }else {
+        usecDiff = lasttv.tv_usec - newtv.tv_usec;
+    }
+
+    msecDiff = usecDiff / 1000 + secDiff * 1000;
+    if (msecDiff > TIME_INTERVAL_MSEC){
+        return 1;
+    }
+    return -1;
+}
+
+// if the newInput flag is on, then update rtv_input to (valid) input
+// and mapKeypadInput to special character for later switch cases
+// set event_buf[i].value = 1 to avoid multiple read
+if (newInput_flag == 1){
+    if(!(KEYPAD_ON > 0)){
+        newInput_flag = 0;
+    }
+    for (i = 0; i < 4; i++) {
+        if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
+            rtv_input = mapKeypadInput(event_buf[i].code);
+            event_buf[i].value = 1;
+        }
+    }
+    // update last time
+    lasttv = newtv;
+}
+#+end_src
+** GPIO
+*** open
+#+begin_src C
+
+#+end_src
+*** read
+#+begin_src C
+
+#+end_src
+* Output device
+** TODO touchlcd
+*** open
+#+begin_src C
+/*
+open up the device driver for touchlcd( /dev/fb0)
+reset the touchlcd to background image(which has SP manual in it)
+key variables: frame, csframe, lcdvar(has fb_mapped)
+
+frame: stores default touchlcd values. Doesn't change from user editing touchlcd with brush. This variable exist to implement eraser function
+frame is updated with functions calls like :
+
+    1. struct lcd_variable init_palette(char* background); // initial call
+    2. void change_palette_image(unsigned short *rgb); // called from image processing functions(grayscale, face detection, camera)
+    3. void load_img2LCD(IplImage *load_img); // load button
+
+
+csframe: servers same purpose as frame but it gets updated from user editing touchlcd with brush as well.
+
+lcdvar: has fb_mapped
+fb_mapped is the pointer where the touchlcd
+
+
+*/
+struct lcd_variable init_palette(char* background);
+
+
+#+end_src
+*** write
+#+begin_src C
+struct lcd_variable{
+  unsigned char *fb_mapped;
+  int mem_size;
+  int fb_fd;
+};
+#+end_src
+** dotmatrix
+*** open
+#+begin_src C
+dot_dev = open("/dev/dotmatrix", O_WRONLY);
+if(dot_dev == -1){
+    printf("Dotmatrix device driver open error!");
+
+}
+#+end_src
+*** read
+#+begin_src C
+write(dot_dev, &count, 4);
+#+end_src
+
+** segment
+*** open
+#+begin_src C
+if((seg_fd=open("/dev/segment",O_RDWR|O_SYNC)) < 0) {
+    printf("FND open fail\n");
+    exit(1);
+}
+#+end_src
+*** write
+#+begin_src C
+write(seg_fd, color, 4);
+#+end_src
+** TODO camera
+*** open
+#+begin_src C
+
+camera_fd = open(CAMERA_DEVICE_PATH, O_RDWR);
+if(camera_fd<0){
+    printf("Error: cannot open %s.\n", CAMERA_DEVICE_PATH);
+    exit(1);
+}
+#+end_src
+*** read
+#+begin_src C
+
+#+end_src
+
+** textlcd
+*** open
+#+begin_src C
+
+#+end_src
+*** read
+#+begin_src C
+
+#+end_src
+
+* Image processing
+** grayscale
+** facedetection

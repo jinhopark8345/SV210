@@ -44,7 +44,6 @@ int is_newInput(struct timeval newtv){
     int msecDiff;
 
     secDiff = newtv.tv_sec - lasttv.tv_sec;
-
     if (newtv.tv_usec >= lasttv.tv_usec){
         usecDiff = newtv.tv_usec - lasttv.tv_usec;
     }else {
@@ -53,16 +52,8 @@ int is_newInput(struct timeval newtv){
 
     msecDiff = usecDiff / 1000 + secDiff * 1000;
     if (msecDiff > TIME_INTERVAL_MSEC){
-        /* printf("\n"); */
-        /* printf("lasttv sec : %d\n", lasttv.tv_sec); */
-        /* printf("newtv sec : %d\n", newtv.tv_sec); */
-        /* printf("sec diff: %d, msec diff: %d, usec diff: %d\n", secDiff, msecDiff, usecDiff); */
-        /* printf("msecDiff : %d\n" , msecDiff); */
-        /* printf("usec diff: %d\n", usecDiff); */
         return 1;
     }
-
-
     return -1;
 }
 
@@ -88,13 +79,9 @@ unsigned short read_keypad(){
     newInput_flag = is_newInput(newtv);
 
     if (newInput_flag == 1){
-
-        // clear the buffer, so it run on main func
         if(!(KEYPAD_ON > 0)){
             newInput_flag = 0;
         }
-
-        /* printf("time : %d.%d\n", newtv.tv_sec, newtv.tv_usec); */
         for (i = 0; i < 4; i++) {
             if ((event_buf[i].type == EV_KEY) && (event_buf[i].value == 0)) {
                 /* rtv_input = event_buf[i].code; */
@@ -106,7 +93,6 @@ unsigned short read_keypad(){
 
             }
         }
-
         // update last time
         lasttv = newtv;
     }
