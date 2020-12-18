@@ -85,17 +85,27 @@ if (newInput_flag == 1){
     lasttv = newtv;
 }
 #+end_src
-** GPIO
+** GPIO / Interrupt
 *** open
 #+begin_src C
-
+gpio_dev = open("/dev/gpiobutton",O_RDWR);
+if(gpio_dev < 0) {
+    printf( "gpio device open ERROR!\n");
+    return -1;
+}
 #+end_src
+*** link gpio signal with custom function
+~make sure the custom function isn't so heavy and it can't have parameters~
+#+begin_src C
+signal(SIGIO, save_sp);
+#+end_src
+
 *** read
 #+begin_src C
-
+read(gpio_dev,&gpio_button,2);
 #+end_src
 * Output device
-** TODO touchlcd
+** touchlcd
 *** open
 #+begin_src C
 /*
@@ -156,7 +166,7 @@ if((seg_fd=open("/dev/segment",O_RDWR|O_SYNC)) < 0) {
 #+begin_src C
 write(seg_fd, color, 4);
 #+end_src
-** TODO camera
+** camera
 *** open
 #+begin_src C
 
