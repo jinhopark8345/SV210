@@ -1,10 +1,8 @@
-
 #ifndef DIPSW_H
 #define DIPSW_H
 
 int dip_dev;
 unsigned short vkey[2];
-
 
 int KEYPAD_ON;
 int DOTMATRIX_ON;

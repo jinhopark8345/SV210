@@ -4,7 +4,7 @@
 #include "cv.h"
 #include "highgui.h"
 
-#define RGB565(r,g,b)	((((r)>>3)<<11) | (((g)>>2)<<5) | ((b)>>3))
+#define RGB565(r, g, b) ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
 
 int init_facedetect();
 int close_facedetect();
@@ -17,11 +17,7 @@ void RGB2cvIMG(IplImage *img, unsigned short *rgb, int ex, int ey);
 
 void init_grayscale(unsigned short *cis_rgb);
 
-
-
-int detect_face(IplImage *cv_image, unsigned short *cis_rgb, unsigned char *fb_mapped);
-
-
-
+int detect_face(IplImage *cv_image, unsigned short *cis_rgb,
+                unsigned char *fb_mapped);
 
 #endif
