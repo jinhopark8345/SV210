@@ -149,3 +149,5 @@ plan.org
 !/palette/*.h
 !/palette/Makefile
 !palette.zip
+
+.projectile
