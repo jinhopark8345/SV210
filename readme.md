@@ -6,12 +6,9 @@
 
 ### Prerequisites
 
-Ubuntu 12.04
-arm-linux-gnuabi 4.4.1
+- Ubuntu 12.04
+- arm-linux-gnuabi 4.4.1
 
-```
-Give examples
-```
 
 ## License
 
